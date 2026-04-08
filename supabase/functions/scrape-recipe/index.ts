@@ -95,9 +95,21 @@ function extractJsonLdRecipe(html: string): ScrapedRecipe | null {
   return null
 }
 
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&#(\d+);/g, (_match, dec) => String.fromCharCode(Number(dec)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_match, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ")
+}
+
 function parseSchemaRecipe(schema: Record<string, unknown>): ScrapedRecipe {
-  const title = String(schema.name || "")
-  const description = schema.description ? String(schema.description) : null
+  const title = decodeHtmlEntities(String(schema.name || ""))
+  const description = schema.description ? decodeHtmlEntities(String(schema.description)) : null
 
   // Parse ingredients
   const rawIngredients = (schema.recipeIngredient || schema.ingredients || []) as string[]
@@ -108,16 +120,19 @@ function parseSchemaRecipe(schema: Record<string, unknown>): ScrapedRecipe {
   const rawInstructions = schema.recipeInstructions
   if (Array.isArray(rawInstructions)) {
     steps = rawInstructions.map((step) => {
-      if (typeof step === "string") return step
-      if (step && typeof step === "object" && "text" in step) return String(step.text)
-      if (step && typeof step === "object" && "itemListElement" in step) {
+      let text = ""
+      if (typeof step === "string") text = step
+      else if (step && typeof step === "object" && "text" in step) text = String(step.text)
+      else if (step && typeof step === "object" && "itemListElement" in step) {
         const subSteps = step.itemListElement as Array<Record<string, unknown>>
-        return subSteps.map((s) => String(s.text || "")).join(" ")
+        text = subSteps.map((s) => String(s.text || "")).join(" ")
+      } else {
+        text = String(step)
       }
-      return String(step)
+      return decodeHtmlEntities(text)
     })
   } else if (typeof rawInstructions === "string") {
-    steps = rawInstructions.split(/\n+/).filter(Boolean)
+    steps = rawInstructions.split(/\n+/).filter(Boolean).map(decodeHtmlEntities)
   }
 
   // Parse servings
@@ -144,7 +159,7 @@ function parseSchemaRecipe(schema: Record<string, unknown>): ScrapedRecipe {
 }
 
 function parseIngredientString(raw: string): { amount: string; unit: string; item: string } {
-  const cleaned = raw.replace(/<[^>]*>/g, "").trim()
+  const cleaned = decodeHtmlEntities(raw.replace(/<[^>]*>/g, "").trim())
 
   // Try to match: "1 1/2 cups flour" or "2 tbsp olive oil"
   const match = cleaned.match(

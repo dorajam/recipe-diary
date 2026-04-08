@@ -6,6 +6,9 @@ import {
   useDeleteRecipe,
 } from '../../hooks/use-recipes'
 import { useState } from 'react'
+import { RecipeStatusToggle } from './RecipeStatusToggle'
+import { CookLogSection } from './CookLogSection'
+import { CommentThread } from './CommentThread'
 
 export function RecipeDetail() {
   const { id } = useParams()
@@ -69,8 +72,8 @@ export function RecipeDetail() {
         </div>
       )}
 
-      {/* Title + attribution */}
-      <header className="space-y-3">
+      {/* Title + attribution + status */}
+      <header className="space-y-4">
         <h1 className="text-3xl md:text-4xl tracking-tight leading-tight m-0">
           {recipe.title}
         </h1>
@@ -81,38 +84,42 @@ export function RecipeDetail() {
           </p>
         )}
 
-        <div className="flex items-center gap-3 text-sm">
-          <div className="flex items-center gap-2">
-            {author.avatar_url ? (
-              <img
-                src={author.avatar_url}
-                alt=""
-                className="w-6 h-6 rounded-full"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium"
-                style={{ backgroundColor: author.accent_colour }}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              {author.avatar_url ? (
+                <img
+                  src={author.avatar_url}
+                  alt=""
+                  className="w-6 h-6 rounded-full"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium"
+                  style={{ backgroundColor: author.accent_colour }}
+                >
+                  {author.display_name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span
+                className="font-medium"
+                style={{ color: author.accent_colour }}
               >
-                {author.display_name.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <span
-              className="font-medium"
-              style={{ color: author.accent_colour }}
-            >
-              {author.display_name}
+                {author.display_name}
+              </span>
+            </div>
+            <span className="text-text-muted/50">&middot;</span>
+            <span className="text-text-muted">
+              {new Date(recipe.created_at).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
             </span>
           </div>
-          <span className="text-text-muted/50">&middot;</span>
-          <span className="text-text-muted">
-            {new Date(recipe.created_at).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            })}
-          </span>
+
+          <RecipeStatusToggle recipeId={recipe.id} />
         </div>
       </header>
 
@@ -163,7 +170,7 @@ export function RecipeDetail() {
             {recipe.steps && recipe.steps.length > 0 && (
               <section className="space-y-3">
                 <h2 className="text-xl m-0">Method</h2>
-                <ol className="space-y-4 list-none p-0 m-0 counter-reset-[step]">
+                <ol className="space-y-4 list-none p-0 m-0">
                   {recipe.steps.map((step, i) => (
                     <li key={i} className="flex gap-3">
                       <span className="text-accent font-display text-lg font-semibold shrink-0 w-7">
@@ -180,7 +187,7 @@ export function RecipeDetail() {
 
         {/* Freeform content */}
         {recipe.content_type === 'freeform' && recipe.freeform_text && (
-          <section className="prose">
+          <section>
             <div className="whitespace-pre-wrap leading-relaxed">
               {recipe.freeform_text}
             </div>
@@ -223,6 +230,16 @@ export function RecipeDetail() {
           </div>
         </section>
       )}
+
+      {/* Cook Log */}
+      <div className="border-t border-border pt-8">
+        <CookLogSection recipeId={recipe.id} />
+      </div>
+
+      {/* Comments */}
+      <div className="border-t border-border pt-8">
+        <CommentThread recipeId={recipe.id} />
+      </div>
 
       {/* Actions */}
       <div className="flex items-center gap-3 pt-4 border-t border-border">

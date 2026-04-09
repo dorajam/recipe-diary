@@ -151,7 +151,7 @@ export function RecipeList() {
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.value}
-              onClick={() => setStatusFilter(f.value)}
+              onClick={() => setStatusFilter(statusFilter === f.value ? 'all' : f.value)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer
                 ${
                   statusFilter === f.value
@@ -179,7 +179,7 @@ export function RecipeList() {
           {CATEGORIES.map((c) => (
             <button
               key={c.value}
-              onClick={() => setCategoryFilter(c.value)}
+              onClick={() => setCategoryFilter(categoryFilter === c.value ? 'all' : c.value)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer
                 ${
                   categoryFilter === c.value

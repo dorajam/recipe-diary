@@ -5,15 +5,22 @@
   --font-display: 'Fraunces', serif;
   --font-sans: 'DM Sans', sans-serif;
 
-  --color-bg: #FFFAF5;
+  --color-bg: #FFFBF7;
   --color-bg-card: #FFFFFF;
+  --color-bg-warm: #FFF0EB;
   --color-text: #2D2A32;
-  --color-text-muted: #7A7580;
+  --color-text-muted: #8A8494;
   --color-person-a: #A47BE0;
   --color-person-b: #FF8B42;
-  --color-accent: #F06292;
-  --color-accent-soft: #FCE4EC;
-  --color-border: #EDE7F0;
+  --color-accent: #FF6B6B;
+  --color-accent-soft: #FFE8E8;
+  --color-pop: #7C5CFC;
+  --color-pop-soft: #F0ECFF;
+  --color-teal: #2ABFBF;
+  --color-teal-soft: #E4F9F9;
+  --color-sunny: #FFBE30;
+  --color-sunny-soft: #FFF8E5;
+  --color-border: #F0EAF0;
   --color-tag-bg: #F5F0FA;
 }
 
@@ -32,7 +39,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 550;
 }
 
 /* Subtle grain texture on the background */
@@ -42,8 +49,50 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 50;
-  opacity: 0.03;
+  opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 256px 256px;
+}
+
+/* Decorative divider */
+.divider-flourish {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-border);
+}
+.divider-flourish::before,
+.divider-flourish::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-accent-soft), var(--color-pop-soft), var(--color-teal-soft));
+  border-radius: 1px;
+}
+
+/* Cook log stamp effect */
+.cook-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 2.5px solid var(--color-teal);
+  border-radius: 999px;
+  color: var(--color-teal);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  transform: rotate(-2deg);
+  position: relative;
+}
+.cook-stamp::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 1.5px dashed;
+  border-color: inherit;
+  opacity: 0.35;
 }

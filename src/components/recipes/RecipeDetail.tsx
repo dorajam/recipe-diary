@@ -59,7 +59,7 @@ export function RecipeDetail() {
 
       {/* Hero image */}
       {heroImage && (
-        <div className="rounded-2xl overflow-hidden shadow-md -rotate-[0.5deg]">
+        <div className="rounded-2xl overflow-hidden shadow-lg -rotate-[0.5deg]">
           <img
             src={heroImage.image_url}
             alt=""
@@ -75,7 +75,7 @@ export function RecipeDetail() {
 
       {/* Title + attribution + status */}
       <header className="space-y-4">
-        <h1 className="text-3xl md:text-4xl tracking-tight leading-tight m-0">
+        <h1 className="text-4xl md:text-5xl tracking-tight leading-[1.1] m-0">
           {recipe.title}
         </h1>
 
@@ -137,25 +137,25 @@ export function RecipeDetail() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-2 bg-accent-soft/50 rounded-full p-1">
         <button
           onClick={() => setActiveTab('recipe')}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors
-            cursor-pointer bg-transparent border-l-0 border-r-0 border-t-0
+          className={`flex-1 px-5 py-2.5 text-sm font-medium rounded-full transition-all
+            cursor-pointer border-none
             ${activeTab === 'recipe'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text-muted hover:text-text'
+              ? 'bg-bg-card text-text shadow-sm'
+              : 'bg-transparent text-text-muted hover:text-text'
             }`}
         >
           Recipe
         </button>
         <button
           onClick={() => setActiveTab('notes')}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors
-            cursor-pointer bg-transparent border-l-0 border-r-0 border-t-0
+          className={`flex-1 px-5 py-2.5 text-sm font-medium rounded-full transition-all
+            cursor-pointer border-none
             ${activeTab === 'notes'
-              ? 'border-accent text-accent'
-              : 'border-transparent text-text-muted hover:text-text'
+              ? 'bg-bg-card text-text shadow-sm'
+              : 'bg-transparent text-text-muted hover:text-text'
             }`}
         >
           Notes & Log
@@ -177,16 +177,20 @@ export function RecipeDetail() {
                 )}
 
                 {recipe.ingredients && recipe.ingredients.length > 0 && (
-                  <section className="space-y-3">
-                    <h2 className="text-xl m-0">Ingredients</h2>
+                  <section className="space-y-4">
+                    <div className="divider-flourish">
+                      <h2 className="text-sm uppercase tracking-widest text-accent m-0 shrink-0 font-sans font-semibold">
+                        Ingredients
+                      </h2>
+                    </div>
                     <ul className="space-y-1.5 list-none p-0 m-0">
                       {recipe.ingredients.map((ing, i) => (
                         <li
                           key={i}
-                          className="flex items-baseline gap-2 py-1 border-b border-border/50 last:border-0"
+                          className="flex items-baseline gap-3 py-1.5 border-b border-border/40 last:border-0"
                         >
                           {(ing.amount || ing.unit) && (
-                            <span className="text-text-muted text-sm shrink-0">
+                            <span className="text-pop font-display font-semibold text-sm shrink-0 min-w-[4rem] text-right">
                               {[ing.amount, ing.unit].filter(Boolean).join(' ')}
                             </span>
                           )}
@@ -198,15 +202,19 @@ export function RecipeDetail() {
                 )}
 
                 {recipe.steps && recipe.steps.length > 0 && (
-                  <section className="space-y-3">
-                    <h2 className="text-xl m-0">Method</h2>
-                    <ol className="space-y-4 list-none p-0 m-0">
+                  <section className="space-y-4">
+                    <div className="divider-flourish">
+                      <h2 className="text-sm uppercase tracking-widest text-accent m-0 shrink-0 font-sans font-semibold">
+                        Method
+                      </h2>
+                    </div>
+                    <ol className="space-y-5 list-none p-0 m-0">
                       {recipe.steps.map((step, i) => (
-                        <li key={i} className="flex gap-3">
-                          <span className="text-accent font-display text-lg font-semibold shrink-0 w-7">
+                        <li key={i} className="flex gap-4">
+                          <span className="text-accent font-display text-2xl font-bold shrink-0 w-8 leading-snug">
                             {i + 1}
                           </span>
-                          <p className="m-0 leading-relaxed">{step}</p>
+                          <p className="m-0 leading-relaxed pt-1">{step}</p>
                         </li>
                       ))}
                     </ol>

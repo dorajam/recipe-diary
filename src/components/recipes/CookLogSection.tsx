@@ -42,22 +42,23 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
   }
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-xl m-0">Cook Log</h2>
         <div className="flex gap-2">
           <button
             onClick={handleQuickLog}
             disabled={addLog.isPending}
-            className="px-3.5 py-1.5 rounded-full text-sm bg-accent text-white
-              hover:opacity-90 transition-opacity cursor-pointer border-none font-medium"
+            className="px-4 py-2 rounded-full text-sm bg-teal text-white
+              hover:opacity-90 transition-opacity cursor-pointer border-none font-medium
+              shadow-sm"
           >
             I made this!
           </button>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="px-3.5 py-1.5 rounded-full text-sm text-text-muted border border-border
-              hover:border-accent/40 transition-colors cursor-pointer bg-transparent"
+            className="px-4 py-2 rounded-full text-sm text-text-muted border border-border
+              hover:border-teal/40 transition-colors cursor-pointer bg-transparent"
           >
             + with notes
           </button>
@@ -104,7 +105,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
             <button
               type="submit"
               disabled={addLog.isPending}
-              className="px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium
+              className="px-4 py-2 rounded-full bg-teal text-white text-sm font-medium
                 hover:opacity-90 cursor-pointer border-none"
             >
               Log it
@@ -123,23 +124,30 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
 
       {/* Timeline */}
       {logs?.length ? (
-        <div className="space-y-3">
-          {logs.map((log) => {
+        <div className="space-y-4">
+          {logs.map((log, i) => {
             const author = log.profiles
             const isOwn = profile?.id === log.cooked_by
+            const rotation = (i % 3 === 0) ? -2 : (i % 3 === 1) ? 1.5 : -0.5
 
             return (
               <div
                 key={log.id}
-                className="flex gap-3 items-start group"
+                className="group flex items-start gap-4"
               >
                 <div
-                  className="w-2 h-2 rounded-full mt-2 shrink-0"
-                  style={{ backgroundColor: author.accent_colour }}
-                />
+                  className="cook-stamp shrink-0 mt-0.5"
+                  style={{
+                    borderColor: author.accent_colour,
+                    color: author.accent_colour,
+                    transform: `rotate(${rotation}deg)`,
+                  }}
+                >
+                  <span>Cooked</span>
+                </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
+                <div className="flex-1 min-w-0 pt-1">
+                  <div className="flex items-baseline gap-2 flex-wrap">
                     <span
                       className="text-sm font-medium"
                       style={{ color: author.accent_colour }}
@@ -147,7 +155,6 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
                       {author.display_name}
                     </span>
                     <span className="text-xs text-text-muted">
-                      made this on{' '}
                       {new Date(log.cooked_on + 'T00:00:00').toLocaleDateString('en-GB', {
                         day: 'numeric',
                         month: 'long',
@@ -168,8 +175,8 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
                     )}
                   </div>
                   {log.note && (
-                    <p className="text-sm text-text-muted leading-relaxed m-0 mt-1">
-                      {log.note}
+                    <p className="text-sm text-text-muted leading-relaxed m-0 mt-1.5 italic">
+                      "{log.note}"
                     </p>
                   )}
                 </div>
@@ -178,7 +185,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
           })}
         </div>
       ) : (
-        <p className="text-sm text-text-muted">
+        <p className="text-sm text-text-muted italic">
           No one's made this yet. Be the first!
         </p>
       )}

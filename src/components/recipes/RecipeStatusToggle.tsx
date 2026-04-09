@@ -6,9 +6,9 @@ interface RecipeStatusToggleProps {
   recipeId: string
 }
 
-const statuses: { value: RecipeStatus; label: string }[] = [
-  { value: 'want_to_try', label: 'Want to try' },
-  { value: 'made_it', label: 'Made it' },
+const statuses: { value: RecipeStatus; label: string; icon: string }[] = [
+  { value: 'want_to_try', label: 'Want to try', icon: '🔖' },
+  { value: 'made_it', label: 'Made it', icon: '✓' },
 ]
 
 export function RecipeStatusToggle({ recipeId }: RecipeStatusToggleProps) {
@@ -36,10 +36,13 @@ export function RecipeStatusToggle({ recipeId }: RecipeStatusToggleProps) {
             onClick={() => handleToggle(s.value)}
             className={`px-3.5 py-1.5 rounded-full text-sm transition-all cursor-pointer border ${
               isActive
-                ? 'bg-accent text-white border-accent'
-                : 'bg-transparent text-text-muted border-border hover:border-accent/40'
+                ? s.value === 'want_to_try'
+                  ? 'bg-sunny text-white border-sunny shadow-sm'
+                  : 'bg-pop text-white border-pop shadow-sm'
+                : 'bg-transparent text-text-muted border-border hover:border-pop/30 hover:bg-pop-soft'
             }`}
           >
+            <span className="mr-1">{s.icon}</span>
             {s.label}
           </button>
         )

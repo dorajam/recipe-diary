@@ -111,9 +111,9 @@ export function CommentThread({ recipeId }: CommentThreadProps) {
           <button
             type="submit"
             disabled={!body.trim() || addComment.isPending}
-            className="px-5 py-2 rounded-xl bg-accent text-white text-sm font-medium
+            className="px-5 py-2.5 rounded-full bg-accent text-white text-sm font-medium
               hover:opacity-90 transition-opacity disabled:opacity-50
-              cursor-pointer border-none"
+              cursor-pointer border-none shadow-sm"
           >
             Post
           </button>

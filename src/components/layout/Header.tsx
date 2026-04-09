@@ -5,20 +5,20 @@ export function Header() {
   const { profile, signOut } = useAuth()
 
   return (
-    <header className="border-b border-border bg-bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+    <header className="border-b border-border bg-bg/90 backdrop-blur-md sticky top-0 z-10">
       <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="no-underline">
+        <Link to="/" className="no-underline group">
           <h1 className="text-xl tracking-tight text-text m-0">
-            Recipe Diary
+            <span className="text-accent">Recipe</span> Diary
           </h1>
         </Link>
 
         <div className="flex items-center gap-4">
           <Link
             to="/recipes/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full
               bg-accent text-white text-sm font-medium no-underline
-              hover:opacity-90 transition-opacity"
+              hover:opacity-90 transition-opacity shadow-sm"
           >
             <span className="text-lg leading-none">+</span>
             Add Recipe

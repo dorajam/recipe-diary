@@ -152,7 +152,7 @@ export function RecipeList() {
             <button
               key={f.value}
               onClick={() => setStatusFilter(f.value)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer
                 ${
                   statusFilter === f.value
                     ? 'bg-accent text-white shadow-sm'
@@ -167,7 +167,7 @@ export function RecipeList() {
         <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => setCategoryFilter('all')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer
               ${
                 categoryFilter === 'all'
                   ? 'bg-sunny text-white shadow-sm'
@@ -180,7 +180,7 @@ export function RecipeList() {
             <button
               key={c.value}
               onClick={() => setCategoryFilter(c.value)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer
                 ${
                   categoryFilter === c.value
                     ? 'bg-sunny text-white shadow-sm'

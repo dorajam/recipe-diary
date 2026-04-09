@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/use-auth'
 import { useCookLog, useAddCookLog, useDeleteCookLog } from '../../hooks/use-cook-log'
+import { useSetRecipeStatus } from '../../hooks/use-recipe-status'
 import { PotDoodle, UtensilsMini } from '../illustrations/Doodles'
 
 interface CookLogSectionProps {
@@ -12,6 +13,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
   const { data: logs } = useCookLog(recipeId)
   const addLog = useAddCookLog()
   const deleteLog = useDeleteCookLog()
+  const setStatus = useSetRecipeStatus()
 
   const [showForm, setShowForm] = useState(false)
   const [cookedOn, setCookedOn] = useState(() => new Date().toISOString().split('T')[0])
@@ -25,6 +27,8 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
       cookedBy: profile.id,
       cookedOn: new Date().toISOString().split('T')[0],
     })
+
+    setStatus.mutate({ recipeId, userId: profile.id, status: 'made_it' })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -37,6 +41,8 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
       cookedOn,
       note: note.trim() || undefined,
     })
+
+    setStatus.mutate({ recipeId, userId: profile.id, status: 'made_it' })
 
     setNote('')
     setShowForm(false)

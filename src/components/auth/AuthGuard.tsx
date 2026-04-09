@@ -10,7 +10,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-text-muted animate-pulse font-display text-xl">
-          Recipe Diary
+          What's Cooking
         </div>
       </div>
     )

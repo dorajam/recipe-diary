@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/use-auth'
 import { useComments, useAddComment, useDeleteComment } from '../../hooks/use-comments'
+import { ChatDoodle } from '../illustrations/Doodles'
 
 interface CommentThreadProps {
   recipeId: string
@@ -93,7 +94,10 @@ export function CommentThread({ recipeId }: CommentThreadProps) {
           })}
         </div>
       ) : (
-        <p className="text-sm text-text-muted">No comments yet.</p>
+        <div className="text-center py-4">
+          <ChatDoodle className="w-20 h-auto mx-auto text-text-muted/30 mb-2" />
+          <p className="text-sm text-text-muted">No notes yet — start the conversation!</p>
+        </div>
       )}
 
       {/* New comment form */}

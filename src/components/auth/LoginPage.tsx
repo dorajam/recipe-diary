@@ -7,7 +7,7 @@ export function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-8">
       <div className="max-w-sm w-full text-center space-y-8">
         <div className="space-y-3">
-          <h1 className="text-4xl tracking-tight">Recipe Diary</h1>
+          <h1 className="text-4xl tracking-tight">What's Cooking</h1>
           <p className="text-text-muted text-lg">
             A shared place for the things we cook, discover, and make.
           </p>

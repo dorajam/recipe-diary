@@ -11,7 +11,7 @@ export function NotAllowed() {
             This is a private diary
           </h1>
           <p className="text-text-muted">
-            Recipe Diary is a personal space for two friends. It's not open for
+            What's Cooking is a personal space for two friends. It's not open for
             new accounts right now.
           </p>
           {user?.email && (

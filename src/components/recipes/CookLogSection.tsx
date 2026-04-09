@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/use-auth'
 import { useCookLog, useAddCookLog, useDeleteCookLog } from '../../hooks/use-cook-log'
+import { PotDoodle, UtensilsMini } from '../illustrations/Doodles'
 
 interface CookLogSectionProps {
   recipeId: string
@@ -143,6 +144,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
                     transform: `rotate(${rotation}deg)`,
                   }}
                 >
+                  <UtensilsMini className="w-3.5 h-3.5" />
                   <span>Cooked</span>
                 </div>
 
@@ -185,9 +187,10 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
           })}
         </div>
       ) : (
-        <p className="text-sm text-text-muted italic">
-          No one's made this yet. Be the first!
-        </p>
+        <div className="text-center py-4">
+          <PotDoodle className="w-20 h-auto mx-auto text-text-muted/30 mb-2" />
+          <p className="text-sm text-text-muted">No one's made this yet. Be the first!</p>
+        </div>
       )}
     </section>
   )

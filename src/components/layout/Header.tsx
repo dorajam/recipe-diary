@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/use-auth'
+import { Sparkles } from '../illustrations/Doodles'
 
 export function Header() {
   const { profile, signOut } = useAuth()
@@ -8,8 +9,9 @@ export function Header() {
     <header className="border-b border-border bg-bg/90 backdrop-blur-md sticky top-0 z-10">
       <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link to="/" className="no-underline group">
-          <h1 className="text-xl tracking-tight text-text m-0">
-            <span className="text-accent">Recipe</span> Diary
+          <h1 className="text-xl tracking-tight text-text m-0 flex items-center gap-1.5">
+            What's <span className="text-accent">Cooking</span>
+            <Sparkles className="w-4 h-4 text-sunny" />
           </h1>
         </Link>
 

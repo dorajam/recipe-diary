@@ -7,17 +7,17 @@
 
   --color-bg: #FFFBF7;
   --color-bg-card: #FFFFFF;
-  --color-bg-warm: #FFF0EB;
+  --color-bg-warm: #FFF2EC;
   --color-text: #2D2A32;
   --color-text-muted: #8A8494;
   --color-person-a: #A47BE0;
   --color-person-b: #FF8B42;
-  --color-accent: #FF6B6B;
-  --color-accent-soft: #FFE8E8;
-  --color-pop: #7C5CFC;
-  --color-pop-soft: #F0ECFF;
-  --color-teal: #2ABFBF;
-  --color-teal-soft: #E4F9F9;
+  --color-accent: #FF7F50;
+  --color-accent-soft: #FFF0E8;
+  --color-pop: #D946A8;
+  --color-pop-soft: #FCEEF7;
+  --color-teal: #D946A8;
+  --color-teal-soft: #FCEEF7;
   --color-sunny: #FFBE30;
   --color-sunny-soft: #FFF8E5;
   --color-border: #F0EAF0;
@@ -67,7 +67,7 @@ body::before {
   content: '';
   flex: 1;
   height: 2px;
-  background: linear-gradient(90deg, var(--color-accent-soft), var(--color-pop-soft), var(--color-teal-soft));
+  background: linear-gradient(90deg, var(--color-accent-soft), var(--color-pop-soft), var(--color-sunny-soft));
   border-radius: 1px;
 }
 

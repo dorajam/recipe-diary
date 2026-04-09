@@ -1,23 +1,26 @@
 import { Link } from 'react-router-dom'
 import type { RecipeWithProfile, RecipeImage } from '../../lib/types'
+import { PlateDoodle } from '../illustrations/Doodles'
 
 interface RecipeCardProps {
   recipe: RecipeWithProfile
   image?: RecipeImage
+  rotation?: string
 }
 
-export function RecipeCard({ recipe, image }: RecipeCardProps) {
+export function RecipeCard({ recipe, image, rotation = '0deg' }: RecipeCardProps) {
   const profile = recipe.profiles
 
   return (
     <Link
       to={`/recipes/${recipe.id}`}
       className="group block no-underline"
+      style={{ transform: `rotate(${rotation})` }}
     >
       <article
         className="bg-bg-card rounded-2xl overflow-hidden
           shadow-sm hover:shadow-lg transition-all duration-300
-          hover:-translate-y-1.5 hover:rotate-[0.5deg] border border-border/60"
+          hover:-translate-y-2 hover:!rotate-0 border border-border/60"
       >
         {/* Image */}
         {image ? (
@@ -30,8 +33,8 @@ export function RecipeCard({ recipe, image }: RecipeCardProps) {
             />
           </div>
         ) : (
-          <div className="aspect-[4/3] bg-gradient-to-br from-accent-soft via-pop-soft to-teal-soft flex items-center justify-center">
-            <span className="text-5xl">🍳</span>
+          <div className="aspect-[4/3] bg-gradient-to-br from-accent-soft via-sunny-soft to-pop-soft flex items-center justify-center">
+            <PlateDoodle className="w-20 h-20 text-text-muted/30" />
           </div>
         )}
 

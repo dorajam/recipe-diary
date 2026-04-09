@@ -18,6 +18,7 @@ export function RecipeDetail() {
   const { data: images } = useRecipeImages(id)
   const deleteRecipe = useDeleteRecipe()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [activeTab, setActiveTab] = useState<'recipe' | 'notes'>('recipe')
 
   if (isLoading) {
     return (
@@ -135,151 +136,179 @@ export function RecipeDetail() {
         </a>
       )}
 
-      {/* Recipe content */}
-      <div className="space-y-6">
-        {/* Structured content */}
-        {recipe.content_type === 'structured' && (
-          <>
-            {recipe.servings && (
-              <p className="text-sm text-text-muted">
-                Serves {recipe.servings}
-              </p>
-            )}
-
-            {recipe.ingredients && recipe.ingredients.length > 0 && (
-              <section className="space-y-3">
-                <h2 className="text-xl m-0">Ingredients</h2>
-                <ul className="space-y-1.5 list-none p-0 m-0">
-                  {recipe.ingredients.map((ing, i) => (
-                    <li
-                      key={i}
-                      className="flex items-baseline gap-2 py-1 border-b border-border/50 last:border-0"
-                    >
-                      {(ing.amount || ing.unit) && (
-                        <span className="text-text-muted text-sm shrink-0">
-                          {[ing.amount, ing.unit].filter(Boolean).join(' ')}
-                        </span>
-                      )}
-                      <span>{ing.item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {recipe.steps && recipe.steps.length > 0 && (
-              <section className="space-y-3">
-                <h2 className="text-xl m-0">Method</h2>
-                <ol className="space-y-4 list-none p-0 m-0">
-                  {recipe.steps.map((step, i) => (
-                    <li key={i} className="flex gap-3">
-                      <span className="text-accent font-display text-lg font-semibold shrink-0 w-7">
-                        {i + 1}
-                      </span>
-                      <p className="m-0 leading-relaxed">{step}</p>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
-          </>
-        )}
-
-        {/* Freeform content */}
-        {recipe.content_type === 'freeform' && recipe.freeform_text && (
-          <section>
-            <div className="whitespace-pre-wrap leading-relaxed">
-              {recipe.freeform_text}
-            </div>
-          </section>
-        )}
-
-        {/* Photo only — the images themselves are the content */}
-        {recipe.content_type === 'photo_only' && !heroImage && (
-          <p className="text-text-muted italic">
-            No photos uploaded yet.
-          </p>
-        )}
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-border">
+        <button
+          onClick={() => setActiveTab('recipe')}
+          className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors
+            cursor-pointer bg-transparent border-l-0 border-r-0 border-t-0
+            ${activeTab === 'recipe'
+              ? 'border-accent text-accent'
+              : 'border-transparent text-text-muted hover:text-text'
+            }`}
+        >
+          Recipe
+        </button>
+        <button
+          onClick={() => setActiveTab('notes')}
+          className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors
+            cursor-pointer bg-transparent border-l-0 border-r-0 border-t-0
+            ${activeTab === 'notes'
+              ? 'border-accent text-accent'
+              : 'border-transparent text-text-muted hover:text-text'
+            }`}
+        >
+          Notes & Log
+        </button>
       </div>
 
-      {/* Gallery */}
-      {galleryImages.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xl m-0">More photos</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {galleryImages.map((img, i) => (
-              <div
-                key={img.id}
-                className="rounded-xl overflow-hidden shadow-sm border border-border"
-                style={{
-                  transform: `rotate(${i % 2 === 0 ? '0.5' : '-0.7'}deg)`,
-                }}
-              >
-                <img
-                  src={img.image_url}
-                  alt={img.caption || ''}
-                  className="w-full object-cover"
-                />
-                {img.caption && (
-                  <p className="text-xs text-text-muted italic px-3 py-2">
-                    {img.caption}
+      {/* Tab content */}
+      {activeTab === 'recipe' ? (
+        <div className="space-y-8">
+          {/* Recipe content */}
+          <div className="space-y-6">
+            {/* Structured content */}
+            {recipe.content_type === 'structured' && (
+              <>
+                {recipe.servings && (
+                  <p className="text-sm text-text-muted">
+                    Serves {recipe.servings}
                   </p>
                 )}
+
+                {recipe.ingredients && recipe.ingredients.length > 0 && (
+                  <section className="space-y-3">
+                    <h2 className="text-xl m-0">Ingredients</h2>
+                    <ul className="space-y-1.5 list-none p-0 m-0">
+                      {recipe.ingredients.map((ing, i) => (
+                        <li
+                          key={i}
+                          className="flex items-baseline gap-2 py-1 border-b border-border/50 last:border-0"
+                        >
+                          {(ing.amount || ing.unit) && (
+                            <span className="text-text-muted text-sm shrink-0">
+                              {[ing.amount, ing.unit].filter(Boolean).join(' ')}
+                            </span>
+                          )}
+                          <span>{ing.item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                {recipe.steps && recipe.steps.length > 0 && (
+                  <section className="space-y-3">
+                    <h2 className="text-xl m-0">Method</h2>
+                    <ol className="space-y-4 list-none p-0 m-0">
+                      {recipe.steps.map((step, i) => (
+                        <li key={i} className="flex gap-3">
+                          <span className="text-accent font-display text-lg font-semibold shrink-0 w-7">
+                            {i + 1}
+                          </span>
+                          <p className="m-0 leading-relaxed">{step}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  </section>
+                )}
+              </>
+            )}
+
+            {/* Freeform content */}
+            {recipe.content_type === 'freeform' && recipe.freeform_text && (
+              <section>
+                <div className="whitespace-pre-wrap leading-relaxed">
+                  {recipe.freeform_text}
+                </div>
+              </section>
+            )}
+
+            {/* Photo only — the images themselves are the content */}
+            {recipe.content_type === 'photo_only' && !heroImage && (
+              <p className="text-text-muted italic">
+                No photos uploaded yet.
+              </p>
+            )}
+          </div>
+
+          {/* Gallery */}
+          {galleryImages.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-xl m-0">More photos</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {galleryImages.map((img, i) => (
+                  <div
+                    key={img.id}
+                    className="rounded-xl overflow-hidden shadow-sm border border-border"
+                    style={{
+                      transform: `rotate(${i % 2 === 0 ? '0.5' : '-0.7'}deg)`,
+                    }}
+                  >
+                    <img
+                      src={img.image_url}
+                      alt={img.caption || ''}
+                      className="w-full object-cover"
+                    />
+                    {img.caption && (
+                      <p className="text-xs text-text-muted italic px-3 py-2">
+                        {img.caption}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            </section>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-4 border-t border-border">
+            <Link
+              to={`/recipes/${recipe.id}/edit`}
+              className="px-4 py-2 rounded-lg border border-border text-sm text-text
+                hover:bg-bg-card transition-colors no-underline"
+            >
+              Edit
+            </Link>
+
+            {confirmDelete ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-text-muted">Are you sure?</span>
+                <button
+                  onClick={handleDelete}
+                  className="px-3 py-1.5 rounded-lg bg-accent text-white text-sm
+                    cursor-pointer border-none hover:opacity-90"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="px-3 py-1.5 rounded-lg border border-border text-sm
+                    cursor-pointer bg-transparent hover:bg-bg-card"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="px-4 py-2 rounded-lg text-sm text-text-muted
+                  hover:text-accent transition-colors cursor-pointer
+                  bg-transparent border-none"
+              >
+                Delete
+              </button>
+            )}
           </div>
-        </section>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <CookLogSection recipeId={recipe.id} />
+          <div className="border-t border-border pt-8">
+            <CommentThread recipeId={recipe.id} />
+          </div>
+        </div>
       )}
-
-      {/* Cook Log */}
-      <div className="border-t border-border pt-8">
-        <CookLogSection recipeId={recipe.id} />
-      </div>
-
-      {/* Comments */}
-      <div className="border-t border-border pt-8">
-        <CommentThread recipeId={recipe.id} />
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-3 pt-4 border-t border-border">
-        <Link
-          to={`/recipes/${recipe.id}/edit`}
-          className="px-4 py-2 rounded-lg border border-border text-sm text-text
-            hover:bg-bg-card transition-colors no-underline"
-        >
-          Edit
-        </Link>
-
-        {confirmDelete ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-text-muted">Are you sure?</span>
-            <button
-              onClick={handleDelete}
-              className="px-3 py-1.5 rounded-lg bg-accent text-white text-sm
-                cursor-pointer border-none hover:opacity-90"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => setConfirmDelete(false)}
-              className="px-3 py-1.5 rounded-lg border border-border text-sm
-                cursor-pointer bg-transparent hover:bg-bg-card"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="px-4 py-2 rounded-lg text-sm text-text-muted
-              hover:text-accent transition-colors cursor-pointer
-              bg-transparent border-none"
-          >
-            Delete
-          </button>
-        )}
-      </div>
     </article>
   )
 }

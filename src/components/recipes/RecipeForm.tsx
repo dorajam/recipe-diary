@@ -10,7 +10,8 @@ import {
   useDeleteImage,
   type RecipeInput,
 } from '../../hooks/use-recipes'
-import type { Ingredient } from '../../lib/types'
+import type { Ingredient, RecipeCategory } from '../../lib/types'
+import { CATEGORIES } from '../../lib/categories'
 import { ImageUpload } from './ImageUpload'
 import { IngredientEditor } from './IngredientEditor'
 import { StepEditor } from './StepEditor'
@@ -45,6 +46,7 @@ export function RecipeForm() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
   const [steps, setSteps] = useState<string[]>([])
   const [servings, setServings] = useState('')
+  const [categories, setCategories] = useState<RecipeCategory[]>([])
   const [pendingImages, setPendingImages] = useState<Blob[]>([])
   const [saving, setSaving] = useState(false)
   const [fetching, setFetching] = useState(false)
@@ -62,6 +64,7 @@ export function RecipeForm() {
       setIngredients(existingRecipe.ingredients || [])
       setSteps(existingRecipe.steps || [])
       setServings(existingRecipe.servings || '')
+      setCategories(existingRecipe.categories || [])
       if (existingRecipe.source_url) setHasFetched(true)
     }
   }, [existingRecipe])
@@ -127,6 +130,7 @@ export function RecipeForm() {
       ingredients: ingredients.length > 0 ? ingredients.filter((i) => i.item.trim()) : null,
       steps: steps.length > 0 ? steps.filter((s) => s.trim()) : null,
       servings: servings.trim() || null,
+      categories,
     }
 
     try {
@@ -248,6 +252,40 @@ export function RecipeForm() {
                 text-base focus:outline-none focus:border-accent resize-y
                 placeholder:text-text-muted/50"
             />
+          </div>
+
+          {/* Categories */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">
+              Categories{' '}
+              <span className="text-text-muted font-normal">optional</span>
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {CATEGORIES.map((c) => {
+                const selected = categories.includes(c.value)
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() =>
+                      setCategories((prev) =>
+                        selected
+                          ? prev.filter((v) => v !== c.value)
+                          : [...prev, c.value],
+                      )
+                    }
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer border
+                      ${
+                        selected
+                          ? 'bg-sunny text-white border-sunny shadow-sm'
+                          : 'bg-bg-card text-text-muted border-border/60 hover:border-sunny/30 hover:text-text'
+                      }`}
+                  >
+                    {c.label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* Servings */}

@@ -6,6 +6,7 @@ import type {
   RecipeImage,
   ContentType,
   SourceType,
+  RecipeCategory,
   Ingredient,
 } from '../lib/types'
 
@@ -72,6 +73,7 @@ export interface RecipeInput {
   steps?: string[] | null
   freeform_text?: string | null
   servings?: string | null
+  categories?: RecipeCategory[]
 }
 
 export function useCreateRecipe() {

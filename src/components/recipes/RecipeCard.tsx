@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { RecipeWithProfile, RecipeImage } from '../../lib/types'
+import { categoryLabel } from '../../lib/categories'
 import { PlateDoodle } from '../illustrations/Doodles'
 
 interface RecipeCardProps {
@@ -14,7 +15,7 @@ export function RecipeCard({ recipe, image, rotation = '0deg' }: RecipeCardProps
   return (
     <Link
       to={`/recipes/${recipe.id}`}
-      className="group block no-underline"
+      className="group block no-underline cursor-pointer"
       style={{ transform: `rotate(${rotation})` }}
     >
       <article
@@ -43,6 +44,20 @@ export function RecipeCard({ recipe, image, rotation = '0deg' }: RecipeCardProps
           <h3 className="text-lg leading-snug m-0 text-text group-hover:text-accent transition-colors font-semibold">
             {recipe.title}
           </h3>
+
+          {recipe.categories?.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {recipe.categories.map((cat) => (
+                <span
+                  key={cat}
+                  className="px-2 py-0.5 rounded-full text-[10px] font-medium
+                    bg-sunny-soft text-text-muted border border-sunny/20"
+                >
+                  {categoryLabel(cat)}
+                </span>
+              ))}
+            </div>
+          )}
 
           {recipe.description && (
             <p className="text-sm text-text-muted line-clamp-2 m-0 leading-relaxed">

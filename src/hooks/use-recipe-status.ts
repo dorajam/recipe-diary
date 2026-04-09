@@ -1,6 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import type { RecipeStatus } from '../lib/types'
+import type { RecipeStatus, UserRecipeStatus } from '../lib/types'
+
+/** Fetch all statuses for the current user, keyed by recipe_id */
+export function useAllRecipeStatuses(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['recipe-statuses', userId],
+    queryFn: async (): Promise<Record<string, RecipeStatus>> => {
+      const { data, error } = await supabase
+        .from('user_recipe_status')
+        .select('recipe_id, status')
+        .eq('user_id', userId!)
+
+      if (error) throw error
+      const map: Record<string, RecipeStatus> = {}
+      for (const row of data as UserRecipeStatus[]) {
+        if (row.status) map[row.recipe_id] = row.status
+      }
+      return map
+    },
+    enabled: !!userId,
+  })
+}
 
 export function useRecipeStatus(recipeId: string | undefined, userId: string | undefined) {
   return useQuery({

@@ -6,6 +6,7 @@ import {
   useDeleteRecipe,
 } from '../../hooks/use-recipes'
 import { useState } from 'react'
+import { categoryLabel } from '../../lib/categories'
 import { RecipeStatusToggle } from './RecipeStatusToggle'
 import { CookLogSection } from './CookLogSection'
 import { CommentThread } from './CommentThread'
@@ -30,7 +31,7 @@ export function RecipeDetail() {
     return (
       <div className="text-center py-20 space-y-4">
         <p className="text-text-muted text-lg">Recipe not found.</p>
-        <Link to="/" className="text-accent hover:underline">
+        <Link to="/" className="text-accent hover:underline cursor-pointer">
           Back to recipes
         </Link>
       </div>
@@ -83,6 +84,20 @@ export function RecipeDetail() {
           <p className="text-lg text-text-muted leading-relaxed">
             {recipe.description}
           </p>
+        )}
+
+        {recipe.categories?.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {recipe.categories.map((cat) => (
+              <span
+                key={cat}
+                className="px-2.5 py-1 rounded-full text-xs font-medium
+                  bg-sunny-soft text-text-muted border border-sunny/20"
+              >
+                {categoryLabel(cat)}
+              </span>
+            ))}
+          </div>
         )}
 
         <div className="flex items-center justify-between flex-wrap gap-3">

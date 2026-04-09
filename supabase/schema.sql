@@ -9,6 +9,11 @@ create type source_type as enum ('manual', 'url', 'photo');
 create type content_type as enum ('structured', 'freeform', 'photo_only');
 create type image_type as enum ('source_photo', 'dish_photo', 'illustration');
 create type recipe_status as enum ('want_to_try', 'made_it');
+create type recipe_category as enum (
+  'breakfast', 'starter', 'main', 'side',
+  'soup_stew', 'salad', 'dessert', 'baking',
+  'snack', 'drink', 'sauce_dip'
+);
 
 -- ============================================================
 -- TABLES
@@ -43,6 +48,7 @@ create table recipes (
   freeform_text text,
   ocr_text text,
   servings text,
+  categories text[] not null default '{}',  -- values from recipe_category enum
   added_by uuid not null references profiles on delete cascade,
   created_at timestamptz default now(),
   updated_at timestamptz default now()

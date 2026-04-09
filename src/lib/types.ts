@@ -2,6 +2,10 @@ export type SourceType = 'manual' | 'url' | 'photo'
 export type ContentType = 'structured' | 'freeform' | 'photo_only'
 export type ImageType = 'source_photo' | 'dish_photo' | 'illustration'
 export type RecipeStatus = 'want_to_try' | 'made_it'
+export type RecipeCategory =
+  | 'breakfast' | 'starter' | 'main' | 'side'
+  | 'soup_stew' | 'salad' | 'dessert' | 'baking'
+  | 'snack' | 'drink' | 'sauce_dip'
 
 export interface Profile {
   id: string
@@ -30,6 +34,7 @@ export interface Recipe {
   freeform_text: string | null
   ocr_text: string | null
   servings: string | null
+  categories: RecipeCategory[]
   added_by: string
   created_at: string
   updated_at: string

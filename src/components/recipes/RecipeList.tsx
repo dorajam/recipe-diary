@@ -202,6 +202,7 @@ export function RecipeList() {
               recipe={recipe}
               image={firstImages[recipe.id]}
               rotation={CARD_ROTATIONS[i % CARD_ROTATIONS.length]}
+              status={statuses?.[recipe.id]}
             />
           ))}
         </div>

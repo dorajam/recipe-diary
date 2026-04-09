@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import type { RecipeWithProfile, RecipeImage } from '../../lib/types'
+import type { RecipeWithProfile, RecipeImage, RecipeStatus } from '../../lib/types'
 import { categoryLabel } from '../../lib/categories'
 import { PlateDoodle } from '../illustrations/Doodles'
 
@@ -7,9 +7,15 @@ interface RecipeCardProps {
   recipe: RecipeWithProfile
   image?: RecipeImage
   rotation?: string
+  status?: RecipeStatus | null
 }
 
-export function RecipeCard({ recipe, image, rotation = '0deg' }: RecipeCardProps) {
+const STATUS_LABEL: Record<RecipeStatus, { text: string; className: string }> = {
+  want_to_try: { text: 'Want to try', className: 'bg-accent-soft text-accent border-accent/20' },
+  made_it: { text: 'Made it', className: 'bg-pop-soft text-pop border-pop/20' },
+}
+
+export function RecipeCard({ recipe, image, rotation = '0deg', status }: RecipeCardProps) {
   const profile = recipe.profiles
 
   return (
@@ -88,11 +94,18 @@ export function RecipeCard({ recipe, image, rotation = '0deg' }: RecipeCardProps
             >
               {profile.display_name}
             </span>
-            <span className="text-xs text-text-muted/50 ml-auto">
-              {new Date(recipe.created_at).toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'short',
-              })}
+            <span className="flex items-center gap-2 ml-auto">
+              {status && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${STATUS_LABEL[status].className}`}>
+                  {STATUS_LABEL[status].text}
+                </span>
+              )}
+              <span className="text-xs text-text-muted/50">
+                {new Date(recipe.created_at).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                })}
+              </span>
             </span>
           </div>
         </div>

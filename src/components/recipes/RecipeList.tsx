@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useRecipes } from '../../hooks/use-recipes'
 import { useRecipeFirstImages } from '../../hooks/use-recipe-first-images'
 import { useAllRecipeStatuses } from '../../hooks/use-recipe-status'
@@ -7,6 +8,29 @@ import { RecipeCard } from './RecipeCard'
 import { CookbookDoodle, PotDoodle, Sparkles } from '../illustrations/Doodles'
 import { CATEGORIES } from '../../lib/categories'
 import type { RecipeCategory, RecipeStatus, RecipeWithProfile } from '../../lib/types'
+
+type SortOption = 'newest' | 'alphabetical' | 'oldest'
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'newest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
+  { value: 'alphabetical', label: 'A–Z' },
+]
+
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
+function getGreetingNudge(): string | null {
+  const hour = new Date().getHours()
+  if (hour >= 6 && hour < 10) return 'Breakfast ideas?'
+  if (hour >= 11 && hour < 14) return 'What\'s for lunch?'
+  if (hour >= 17 && hour < 21) return 'Time to cook dinner?'
+  return null
+}
 
 const CARD_ROTATIONS = ['-0.8deg', '0.6deg', '-0.4deg', '1deg', '-0.6deg', '0.8deg']
 
@@ -27,7 +51,8 @@ function matchesSearch(recipe: RecipeWithProfile, query: string): boolean {
 }
 
 export function RecipeList() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
+  const navigate = useNavigate()
   const { data: recipes, isLoading, error } = useRecipes()
   const firstImages = useRecipeFirstImages(recipes?.map((r) => r.id))
   const { data: statuses } = useAllRecipeStatuses(user?.id)
@@ -35,6 +60,28 @@ export function RecipeList() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [categoryFilter, setCategoryFilter] = useState<RecipeCategory | 'all'>('all')
+  const [sortBy, setSortBy] = useState<SortOption>('newest')
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  // Keyboard shortcut: / to focus search
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === '/' && !e.metaKey && !e.ctrlKey) {
+        const tag = (e.target as HTMLElement).tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        e.preventDefault()
+        searchRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [])
+
+  const handleRandomPick = useCallback(() => {
+    if (!recipes?.length) return
+    const pick = recipes[Math.floor(Math.random() * recipes.length)]
+    navigate(`/recipes/${pick.id}`)
+  }, [recipes, navigate])
 
   const filtered = useMemo(() => {
     if (!recipes) return []
@@ -52,8 +99,15 @@ export function RecipeList() {
       result = result.filter((r) => r.categories?.includes(categoryFilter))
     }
 
+    if (sortBy === 'alphabetical') {
+      result = [...result].sort((a, b) => a.title.localeCompare(b.title))
+    } else if (sortBy === 'oldest') {
+      result = [...result].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    }
+    // 'newest' is the default from the API
+
     return result
-  }, [recipes, search, statusFilter, categoryFilter, statuses])
+  }, [recipes, search, statusFilter, categoryFilter, sortBy, statuses])
 
   if (isLoading) {
     return (
@@ -89,17 +143,34 @@ export function RecipeList() {
 
   return (
     <div className="space-y-6">
-      {/* Search & filter bar */}
-      <div className="space-y-3">
-        <div className="flex items-baseline justify-between mb-1">
-          <div className="flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-sunny" />
-            <h2 className="text-2xl m-0 tracking-tight">Our recipes</h2>
-          </div>
+      {/* Greeting + header */}
+      <div className="space-y-1">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-2xl m-0 tracking-tight">
+            {getGreeting()}{profile ? `, ${profile.display_name.split(' ')[0]}` : ''}
+          </h2>
           <span className="text-text-muted text-xs">
             {recipes.length} {recipes.length === 1 ? 'recipe' : 'recipes'}
           </span>
         </div>
+        {getGreetingNudge() && (
+          <p className="text-sm text-text-muted/60 m-0">{getGreetingNudge()}</p>
+        )}
+      </div>
+
+      {/* Random picker */}
+      <button
+        onClick={handleRandomPick}
+        className="w-full py-2.5 rounded-xl border border-dashed border-accent/30
+          text-sm text-accent font-medium hover:bg-accent-soft/30
+          transition-colors cursor-pointer bg-transparent"
+      >
+        <Sparkles className="w-3.5 h-3.5 text-sunny inline-block mr-1.5 -mt-0.5" />
+        What should we cook?
+      </button>
+
+      {/* Search & filter bar */}
+      <div className="space-y-3">
         <div className="relative">
           <svg
             className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted/50"
@@ -112,8 +183,9 @@ export function RecipeList() {
             <path d="m21 21-4.35-4.35" strokeLinecap="round" />
           </svg>
           <input
+            ref={searchRef}
             type="text"
-            placeholder="Search recipes..."
+            placeholder="Search recipes...  (press /)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl
@@ -175,6 +247,25 @@ export function RecipeList() {
                 }`}
             >
               {c.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort */}
+        <div className="flex items-center gap-1.5 pt-1">
+          <span className="text-[11px] text-text-muted/50 uppercase tracking-wider">Sort</span>
+          {SORT_OPTIONS.map((s) => (
+            <button
+              key={s.value}
+              onClick={() => setSortBy(s.value)}
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all cursor-pointer
+                ${
+                  sortBy === s.value
+                    ? 'bg-text/10 text-text'
+                    : 'text-text-muted/50 hover:text-text-muted'
+                }`}
+            >
+              {s.label}
             </button>
           ))}
         </div>

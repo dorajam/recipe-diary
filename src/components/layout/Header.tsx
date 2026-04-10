@@ -1,9 +1,18 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/use-auth'
+import { useRecipes } from '../../hooks/use-recipes'
 import { Sparkles } from '../illustrations/Doodles'
 
 export function Header() {
   const { profile, signOut } = useAuth()
+  const navigate = useNavigate()
+  const { data: recipes } = useRecipes()
+
+  function handleShuffle() {
+    if (!recipes?.length) return
+    const pick = recipes[Math.floor(Math.random() * recipes.length)]
+    navigate(`/recipes/${pick.id}`)
+  }
 
   return (
     <header className="border-b border-border bg-bg/90 backdrop-blur-md sticky top-0 z-10">
@@ -15,7 +24,21 @@ export function Header() {
           </h1>
         </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {recipes && recipes.length > 1 && (
+            <button
+              onClick={handleShuffle}
+              title="Surprise me!"
+              className="w-9 h-9 rounded-full flex items-center justify-center
+                text-text-muted hover:text-accent hover:bg-accent-soft/50
+                transition-colors cursor-pointer bg-transparent border-none"
+            >
+              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+
           <Link
             to="/recipes/new"
             className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full

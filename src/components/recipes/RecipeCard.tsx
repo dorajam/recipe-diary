@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import type { RecipeWithProfile, RecipeImage, RecipeStatus } from '../../lib/types'
-import { categoryLabel } from '../../lib/categories'
 import { PlateDoodle } from '../illustrations/Doodles'
 
 const THREE_DAYS = 3 * 24 * 60 * 60 * 1000
@@ -10,7 +9,6 @@ interface RecipeCardProps {
   image?: RecipeImage
   rotation?: string
   status?: RecipeStatus | null
-  isRecipeOfTheWeek?: boolean
 }
 
 const STATUS_LABEL: Record<RecipeStatus, { text: string; className: string }> = {
@@ -18,7 +16,7 @@ const STATUS_LABEL: Record<RecipeStatus, { text: string; className: string }> = 
   made_it: { text: 'Made it', className: 'bg-pop-soft text-pop border-pop/20' },
 }
 
-export function RecipeCard({ recipe, image, rotation = '0deg', status, isRecipeOfTheWeek }: RecipeCardProps) {
+export function RecipeCard({ recipe, image, rotation = '0deg', status }: RecipeCardProps) {
   const profile = recipe.profiles
   const isNew = Date.now() - new Date(recipe.created_at).getTime() < THREE_DAYS
 
@@ -29,24 +27,16 @@ export function RecipeCard({ recipe, image, rotation = '0deg', status, isRecipeO
       style={{ transform: `rotate(${rotation})` }}
     >
       <article
-        className={`relative bg-bg-card rounded-2xl overflow-hidden
+        className="relative bg-bg-card rounded-2xl overflow-hidden
           shadow-sm hover:shadow-lg transition-all duration-300
-          hover:-translate-y-2 hover:!rotate-0
-          ${isRecipeOfTheWeek ? 'border-2 border-sunny/50 ring-2 ring-sunny/10' : 'border border-border/60'}`}
+          hover:-translate-y-2 hover:!rotate-0 border border-border/60"
       >
-        {/* Badges overlay */}
-        {(isNew || isRecipeOfTheWeek) && (
-          <div className="absolute top-3 right-3 z-10 flex gap-1.5">
-            {isRecipeOfTheWeek && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sunny text-white shadow-sm">
-                Pick of the week
-              </span>
-            )}
-            {isNew && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent text-white shadow-sm">
-                New
-              </span>
-            )}
+        {/* New badge */}
+        {isNew && (
+          <div className="absolute top-3 right-3 z-10">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent text-white shadow-sm">
+              New
+            </span>
           </div>
         )}
 
@@ -71,20 +61,6 @@ export function RecipeCard({ recipe, image, rotation = '0deg', status, isRecipeO
           <h3 className="text-lg leading-snug m-0 text-text group-hover:text-accent transition-colors font-semibold">
             {recipe.title}
           </h3>
-
-          {recipe.categories?.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {recipe.categories.map((cat) => (
-                <span
-                  key={cat}
-                  className="px-2 py-0.5 rounded-full text-[10px] font-medium
-                    bg-sunny-soft text-text-muted border border-sunny/20"
-                >
-                  {categoryLabel(cat)}
-                </span>
-              ))}
-            </div>
-          )}
 
           {recipe.description && (
             <p className="text-sm text-text-muted line-clamp-2 m-0 leading-relaxed">

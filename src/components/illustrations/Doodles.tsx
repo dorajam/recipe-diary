@@ -158,35 +158,36 @@ export function ChatDoodle({ className }: DoodleProps) {
 export function PlateDoodle({ className }: DoodleProps) {
   return (
     <svg
-      viewBox="0 0 80 80"
+      viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
       {/* Plate */}
-      <ellipse
-        cx="40" cy="48" rx="30" ry="10"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-        opacity="0.3"
-      />
-      <ellipse
-        cx="40" cy="44" rx="24" ry="8"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        fill="none"
-        opacity="0.2"
-      />
-      {/* Food pile - abstract colourful shapes */}
-      <circle cx="34" cy="36" r="6" fill="var(--color-accent)" opacity="0.4" />
-      <circle cx="46" cy="34" r="7" fill="var(--color-sunny)" opacity="0.35" />
-      <circle cx="40" cy="30" r="5" fill="var(--color-sunny)" opacity="0.45" />
-      <circle cx="38" cy="38" r="4" fill="var(--color-pop)" opacity="0.3" />
-      {/* Sparkles */}
-      <path d="M58 22 L60 18 L62 22 L58 22" fill="var(--color-sunny)" opacity="0.6" />
-      <path d="M22 20 L23 17 L24 20 L22 20" fill="var(--color-accent)" opacity="0.5" />
-      <circle cx="52" cy="16" r="1.5" fill="var(--color-pop)" opacity="0.5" />
+      <ellipse cx="60" cy="72" rx="40" ry="14" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.25" />
+      <ellipse cx="60" cy="68" rx="32" ry="10" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.15" />
+      {/* Bowl of food */}
+      <path d="M34 56 Q34 40 60 38 Q86 40 86 56 Q86 62 60 64 Q34 62 34 56Z"
+        fill="var(--color-sunny)" opacity="0.3" />
+      {/* Food bits */}
+      <circle cx="48" cy="48" r="7" fill="var(--color-accent)" opacity="0.45" />
+      <circle cx="68" cy="46" r="8" fill="var(--color-pop)" opacity="0.35" />
+      <circle cx="56" cy="42" r="6" fill="var(--color-sunny)" opacity="0.5" />
+      <circle cx="62" cy="54" r="5" fill="var(--color-accent)" opacity="0.3" />
+      <circle cx="44" cy="54" r="4" fill="var(--color-pop)" opacity="0.4" />
+      {/* Fork */}
+      <path d="M24 28 L24 34 M22 28 L22 33 Q22 35 24 35 Q26 35 26 33 L26 28"
+        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.35" />
+      <line x1="24" y1="35" x2="24" y2="46" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.35" />
+      {/* Knife */}
+      <path d="M94 28 Q96 28 96 33 L96 35 L94 35 L94 46"
+        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.35" />
+      {/* Steam wisps */}
+      <path d="M46 32 Q44 26 47 20" stroke="var(--color-sunny)" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.5" />
+      <path d="M60 30 Q62 22 59 16" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.4" />
+      <path d="M74 32 Q72 24 75 18" stroke="var(--color-pop)" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.5" />
+      {/* Sparkle */}
+      <path d="M86 22 L87 18 L88 22 L92 23 L88 24 L87 28 L86 24 L82 23Z" fill="var(--color-sunny)" opacity="0.6" />
     </svg>
   )
 }

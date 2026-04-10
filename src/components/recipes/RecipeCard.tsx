@@ -41,7 +41,7 @@ export function RecipeCard({ recipe, image, rotation = '0deg', status }: RecipeC
           </div>
         ) : (
           <div className="aspect-[4/3] bg-gradient-to-br from-accent-soft via-sunny-soft to-pop-soft flex items-center justify-center">
-            <PlateDoodle className="w-20 h-20 text-text-muted/30" />
+            <PlateDoodle className="w-28 h-28 text-text-muted/50" />
           </div>
         )}
 

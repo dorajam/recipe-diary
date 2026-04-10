@@ -12,8 +12,7 @@ const CARD_ROTATIONS = ['-0.8deg', '0.6deg', '-0.4deg', '1deg', '-0.6deg', '0.8d
 
 type StatusFilter = 'all' | RecipeStatus
 
-const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
+const STATUS_FILTERS: { value: RecipeStatus; label: string }[] = [
   { value: 'want_to_try', label: 'Want to try' },
   { value: 'made_it', label: 'Made it' },
 ]
@@ -89,30 +88,18 @@ export function RecipeList() {
   const hasActiveFilters = search.trim() || statusFilter !== 'all' || categoryFilter !== 'all'
 
   return (
-    <div className="space-y-10">
-      {/* Hero greeting */}
-      <div className="relative text-center py-6">
-        {/* Decorative background blobs */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-accent-soft rounded-full blur-3xl opacity-50" />
-          <div className="absolute -top-5 right-10 w-32 h-32 bg-pop-soft rounded-full blur-3xl opacity-40" />
-          <div className="absolute top-10 left-1/3 w-36 h-36 bg-sunny-soft rounded-full blur-3xl opacity-40" />
-        </div>
-
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <Sparkles className="w-5 h-5 text-sunny" />
-          <h2 className="text-3xl md:text-4xl m-0 tracking-tight">
-            Our recipes
-          </h2>
-          <Sparkles className="w-5 h-5 text-accent" />
-        </div>
-        <p className="text-text-muted text-sm">
-          {recipes.length} {recipes.length === 1 ? 'recipe' : 'recipes'} in your collection
-        </p>
-      </div>
-
+    <div className="space-y-6">
       {/* Search & filter bar */}
       <div className="space-y-3">
+        <div className="flex items-baseline justify-between mb-1">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-sunny" />
+            <h2 className="text-2xl m-0 tracking-tight">Our recipes</h2>
+          </div>
+          <span className="text-text-muted text-xs">
+            {recipes.length} {recipes.length === 1 ? 'recipe' : 'recipes'}
+          </span>
+        </div>
         <div className="relative">
           <svg
             className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted/50"

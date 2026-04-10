@@ -78,6 +78,15 @@ export function RecipeList() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [])
 
+  // Stable "recipe of the week" — pick changes each Monday
+  const recipeOfTheWeekId = useMemo(() => {
+    if (!recipes?.length) return null
+    const now = new Date()
+    // Week number seed: days since epoch / 7
+    const weekSeed = Math.floor(now.getTime() / (7 * 24 * 60 * 60 * 1000))
+    return recipes[weekSeed % recipes.length].id
+  }, [recipes])
+
   const season = getSeason()
   const seasonCfg = SEASON_CONFIG[season]
 
@@ -288,6 +297,7 @@ export function RecipeList() {
               image={firstImages[recipe.id]}
               rotation={CARD_ROTATIONS[i % CARD_ROTATIONS.length]}
               status={statuses?.[recipe.id]}
+              isRecipeOfTheWeek={recipe.id === recipeOfTheWeekId}
             />
           ))}
         </div>

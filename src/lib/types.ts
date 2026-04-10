@@ -81,6 +81,14 @@ export interface CookLog {
   created_at: string
 }
 
+export interface CookLogReaction {
+  id: string
+  cook_log_id: string
+  user_id: string
+  emoji: string
+  created_at: string
+}
+
 export interface Comment {
   id: string
   recipe_id: string

@@ -98,6 +98,16 @@ create table cook_log (
   created_at timestamptz default now()
 );
 
+-- Emoji reactions on cook log entries
+create table cook_log_reactions (
+  id uuid primary key default gen_random_uuid(),
+  cook_log_id uuid not null references cook_log on delete cascade,
+  user_id uuid not null references profiles on delete cascade,
+  emoji text not null,
+  created_at timestamptz default now(),
+  unique (cook_log_id, user_id, emoji)
+);
+
 -- Comments thread per recipe
 create table comments (
   id uuid primary key default gen_random_uuid(),
@@ -117,6 +127,7 @@ create index idx_recipe_images_recipe_id on recipe_images (recipe_id);
 create index idx_recipe_tags_recipe_id on recipe_tags (recipe_id);
 create index idx_recipe_tags_tag_id on recipe_tags (tag_id);
 create index idx_cook_log_recipe_id on cook_log (recipe_id);
+create index idx_cook_log_reactions_log_id on cook_log_reactions (cook_log_id);
 create index idx_comments_recipe_id on comments (recipe_id);
 
 -- ============================================================
@@ -161,6 +172,7 @@ alter table tags enable row level security;
 alter table recipe_tags enable row level security;
 alter table user_recipe_status enable row level security;
 alter table cook_log enable row level security;
+alter table cook_log_reactions enable row level security;
 alter table comments enable row level security;
 
 -- ============================================================
@@ -268,6 +280,18 @@ create policy "Allowed users can update own cook log"
 create policy "Allowed users can delete own cook log"
   on cook_log for delete to authenticated
   using (is_allowed_user() and cooked_by = auth.uid());
+
+-- cook_log_reactions
+create policy "Allowed users can read reactions"
+  on cook_log_reactions for select to authenticated using (is_allowed_user());
+
+create policy "Allowed users can add reactions"
+  on cook_log_reactions for insert to authenticated
+  with check (is_allowed_user() and user_id = auth.uid());
+
+create policy "Allowed users can remove own reactions"
+  on cook_log_reactions for delete to authenticated
+  using (is_allowed_user() and user_id = auth.uid());
 
 -- comments
 create policy "Allowed users can read comments"

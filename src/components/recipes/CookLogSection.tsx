@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/use-auth'
-import { useCookLog, useAddCookLog, useDeleteCookLog } from '../../hooks/use-cook-log'
+import { useCookLog, useAddCookLog, useDeleteCookLog, useCookLogReactions, useToggleReaction } from '../../hooks/use-cook-log'
 import { useSetRecipeStatus } from '../../hooks/use-recipe-status'
 import { PotDoodle, UtensilsMini } from '../illustrations/Doodles'
+
+const REACTION_EMOJIS = ['\u{1F60B}', '\u{1F525}', '\u{2764}\u{FE0F}', '\u{1F44F}', '\u{1F924}']
 
 interface CookLogSectionProps {
   recipeId: string
@@ -14,6 +16,9 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
   const addLog = useAddCookLog()
   const deleteLog = useDeleteCookLog()
   const setStatus = useSetRecipeStatus()
+  const logIds = logs?.map((l) => l.id) || []
+  const { data: reactions } = useCookLogReactions(logIds)
+  const toggleReaction = useToggleReaction()
 
   const [showForm, setShowForm] = useState(false)
   const [cookedOn, setCookedOn] = useState(() => new Date().toISOString().split('T')[0])
@@ -187,6 +192,44 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
                       "{log.note}"
                     </p>
                   )}
+
+                  {/* Reactions */}
+                  <div className="flex items-center gap-1 mt-2 flex-wrap">
+                    {REACTION_EMOJIS.map((emoji) => {
+                      const logReactions = reactions?.filter(
+                        (r) => r.cook_log_id === log.id && r.emoji === emoji,
+                      ) || []
+                      const count = logReactions.length
+                      const hasReacted = logReactions.some((r) => r.user_id === profile?.id)
+
+                      return (
+                        <button
+                          key={emoji}
+                          onClick={() => {
+                            if (!profile) return
+                            toggleReaction.mutate({
+                              logId: log.id,
+                              userId: profile.id,
+                              emoji,
+                              recipeId,
+                            })
+                          }}
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs
+                            cursor-pointer border transition-all
+                            ${
+                              hasReacted
+                                ? 'bg-accent-soft border-accent/30'
+                                : count > 0
+                                  ? 'bg-bg-card border-border/60'
+                                  : 'bg-transparent border-transparent opacity-0 group-hover:opacity-50 hover:!opacity-100'
+                            }`}
+                        >
+                          <span>{emoji}</span>
+                          {count > 0 && <span className="text-[10px] text-text-muted">{count}</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
             )

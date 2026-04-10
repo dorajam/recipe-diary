@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import type { CookLog, Profile } from '../lib/types'
+import type { CookLog, CookLogReaction, Profile } from '../lib/types'
 
 export interface CookLogWithProfile extends CookLog {
   profiles: Profile
@@ -72,6 +72,65 @@ export function useDeleteCookLog() {
     },
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['cook-log', vars.recipeId] })
+    },
+  })
+}
+
+// ── Reactions ──
+
+export function useCookLogReactions(logIds: string[]) {
+  return useQuery({
+    queryKey: ['cook-log-reactions', logIds],
+    queryFn: async (): Promise<CookLogReaction[]> => {
+      if (!logIds.length) return []
+      const { data, error } = await supabase
+        .from('cook_log_reactions')
+        .select('*')
+        .in('cook_log_id', logIds)
+
+      if (error) throw error
+      return data as CookLogReaction[]
+    },
+    enabled: logIds.length > 0,
+  })
+}
+
+export function useToggleReaction() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      logId,
+      userId,
+      emoji,
+    }: {
+      logId: string
+      userId: string
+      emoji: string
+      recipeId: string
+    }) => {
+      // Check if reaction already exists
+      const { data: existing } = await supabase
+        .from('cook_log_reactions')
+        .select('id')
+        .eq('cook_log_id', logId)
+        .eq('user_id', userId)
+        .eq('emoji', emoji)
+        .maybeSingle()
+
+      if (existing) {
+        await supabase.from('cook_log_reactions').delete().eq('id', existing.id)
+      } else {
+        const { error } = await supabase.from('cook_log_reactions').insert({
+          cook_log_id: logId,
+          user_id: userId,
+          emoji,
+        })
+        if (error) throw error
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cook-log-reactions'] })
     },
   })
 }

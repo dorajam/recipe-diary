@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/use-auth'
 import { RecipeCard } from './RecipeCard'
 import { CookbookDoodle, PotDoodle, Sparkles } from '../illustrations/Doodles'
 import { CATEGORIES } from '../../lib/categories'
+import { getSeason, SEASON_CONFIG } from '../../lib/season'
 import type { RecipeCategory, RecipeStatus, RecipeWithProfile } from '../../lib/types'
 
 type SortOption = 'newest' | 'alphabetical' | 'oldest'
@@ -76,6 +77,9 @@ export function RecipeList() {
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
   }, [])
+
+  const season = getSeason()
+  const seasonCfg = SEASON_CONFIG[season]
 
   const handleRandomPick = useCallback(() => {
     if (!recipes?.length) return
@@ -153,20 +157,23 @@ export function RecipeList() {
             {recipes.length} {recipes.length === 1 ? 'recipe' : 'recipes'}
           </span>
         </div>
-        {getGreetingNudge() && (
-          <p className="text-sm text-text-muted/60 m-0">{getGreetingNudge()}</p>
+        {(getGreetingNudge() || seasonCfg.nudge) && (
+          <p className="text-sm text-text-muted/60 m-0">
+            {getGreetingNudge() || `${seasonCfg.emoji} ${seasonCfg.nudge}`}
+          </p>
         )}
       </div>
 
       {/* Random picker */}
       <button
         onClick={handleRandomPick}
-        className="w-full py-2.5 rounded-xl border border-dashed border-accent/30
-          text-sm text-accent font-medium hover:bg-accent-soft/30
-          transition-colors cursor-pointer bg-transparent"
+        className={`w-full py-2.5 rounded-xl border border-dashed border-accent/30
+          text-sm text-accent font-medium
+          transition-colors cursor-pointer bg-gradient-to-r ${seasonCfg.gradient}
+          hover:opacity-80`}
       >
         <Sparkles className="w-3.5 h-3.5 text-sunny inline-block mr-1.5 -mt-0.5" />
-        What should we cook?
+        What should we cook? {seasonCfg.emoji}
       </button>
 
       {/* Search & filter bar */}

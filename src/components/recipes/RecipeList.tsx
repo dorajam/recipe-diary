@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRecipes } from '../../hooks/use-recipes'
 import { useRecipeFirstImages } from '../../hooks/use-recipe-first-images'
@@ -62,21 +62,6 @@ export function RecipeList() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [categoryFilter, setCategoryFilter] = useState<RecipeCategory | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
-  const searchRef = useRef<HTMLInputElement>(null)
-
-  // Keyboard shortcut: / to focus search
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey) {
-        const tag = (e.target as HTMLElement).tagName
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-        e.preventDefault()
-        searchRef.current?.focus()
-      }
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [])
 
   // Stable "recipe of the week" — pick changes each Monday
   const recipeOfTheWeekId = useMemo(() => {
@@ -199,9 +184,8 @@ export function RecipeList() {
             <path d="m21 21-4.35-4.35" strokeLinecap="round" />
           </svg>
           <input
-            ref={searchRef}
             type="text"
-            placeholder="Search recipes...  (press /)"
+            placeholder="Search recipes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl

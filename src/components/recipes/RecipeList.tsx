@@ -99,7 +99,7 @@ export function RecipeList() {
   return (
     <div className="space-y-8">
       {/* Greeting */}
-      <h2 className="text-2xl m-0 tracking-tight">
+      <h2 className="text-2xl m-0 tracking-tight pb-2">
         {getGreeting()}{profile ? `, ${profile.display_name.split(' ')[0]}` : ''}
       </h2>
 

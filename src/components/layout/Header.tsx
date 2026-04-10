@@ -29,6 +29,7 @@ export function Header() {
             <button
               onClick={handleShuffle}
               title="Surprise me!"
+              aria-label="Surprise me!"
               className="w-9 h-9 rounded-full flex items-center justify-center
                 text-text-muted hover:text-accent hover:bg-accent-soft/50
                 transition-colors cursor-pointer bg-transparent border-none"

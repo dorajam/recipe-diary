@@ -163,7 +163,7 @@ function parseIngredientString(raw: string): { amount: string; unit: string; ite
 
   // Try to match: "1 1/2 cups flour" or "2 tbsp olive oil"
   const match = cleaned.match(
-    /^([\d\s./½¼¾⅓⅔⅛]+)?\s*(cups?|tbsp|tsp|tablespoons?|teaspoons?|oz|ounces?|lbs?|pounds?|g|kg|ml|l|liters?|litres?|pinch|dash|cloves?|bunch|can|cans|package|packages|pkg|large|medium|small|whole|stick|sticks)?\s*[.,]?\s*(.+)/i,
+    /^([\d\s./½¼¾⅓⅔⅛]+)?\s*(cups?|tbsp|tsp|tablespoons?|teaspoons?|oz|ounces?|lbs?|pounds?|g\b|kg|ml|liters?|litres?|pinch|dash|cloves?|bunch|cans?|packages?|pkg|large|medium|small|whole|sticks?)(?=\s|$)\s*[.,]?\s*(.+)/i,
   )
 
   if (match) {

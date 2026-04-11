@@ -52,6 +52,9 @@ export function RecipeForm() {
   const [fetching, setFetching] = useState(false)
   const [fetchError, setFetchError] = useState('')
   const [hasFetched, setHasFetched] = useState(false)
+  const [addMode, setAddMode] = useState<'url' | 'photo'>('url')
+  const [scanning, setScanning] = useState(false)
+  const [scanError, setScanError] = useState('')
 
   const hasPopulated = useRef(false)
 
@@ -112,6 +115,49 @@ export function RecipeForm() {
     }
   }
 
+  async function handleScanPhoto(file: File) {
+    setScanning(true)
+    setScanError('')
+
+    try {
+      const { resizeImage } = await import('../../lib/image-resize')
+      const resized = await resizeImage(file)
+
+      // Convert blob to base64
+      const buffer = await resized.arrayBuffer()
+      const base64 = btoa(
+        new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''),
+      )
+
+      const { data, error } = await supabase.functions.invoke('ocr-recipe', {
+        body: { image: base64, media_type: resized.type || 'image/jpeg' },
+      })
+
+      if (error) throw error
+      if (data.error) throw new Error(data.error)
+
+      const scraped = data as ScrapedRecipe
+      if (scraped.title) setTitle(scraped.title)
+      if (scraped.description) setDescription(scraped.description)
+      if (scraped.ingredients?.length) setIngredients(scraped.ingredients)
+      if (scraped.steps?.length) setSteps(scraped.steps)
+      if (scraped.servings) setServings(scraped.servings)
+
+      // Add the scanned photo as a recipe image too
+      setPendingImages((prev) => [...prev, resized])
+      setHasFetched(true)
+    } catch (err) {
+      console.error('OCR error:', err)
+      setScanError(
+        err instanceof Error
+          ? err.message
+          : 'Could not read the recipe from that photo. You can still add it manually.',
+      )
+    } finally {
+      setScanning(false)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!profile || !title.trim()) return
@@ -125,7 +171,7 @@ export function RecipeForm() {
       title: title.trim(),
       description: description.trim() || null,
       source_url: sourceUrl.trim() || null,
-      source_type: sourceUrl.trim() ? 'url' : hasPhotos ? 'photo' : 'manual',
+      source_type: sourceUrl.trim() ? 'url' : addMode === 'photo' ? 'photo' : hasPhotos ? 'photo' : 'manual',
       content_type: hasStructured ? 'structured' : hasPhotos ? 'photo_only' : 'freeform',
       ingredients: ingredients.length > 0 ? ingredients.filter((i) => i.item.trim()) : null,
       steps: steps.length > 0 ? steps.filter((s) => s.trim()) : null,
@@ -167,8 +213,8 @@ export function RecipeForm() {
     }
   }
 
-  // Show the full form once we've fetched from URL, or if editing, or if there's no URL
-  const showFullForm = hasFetched || isEditing || !sourceUrl.trim()
+  // Show the full form once we've fetched/scanned, or if editing, or if manual entry
+  const showFullForm = hasFetched || isEditing || (addMode === 'url' && !sourceUrl.trim())
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-8">
@@ -176,45 +222,124 @@ export function RecipeForm() {
         {isEditing ? 'Edit Recipe' : 'New Recipe'}
       </h2>
 
-      {/* URL Input — prominent when creating */}
+      {/* Add method — URL or Photo */}
       {!isEditing && (
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-text">
-            Paste a recipe URL
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="url"
-              value={sourceUrl}
-              onChange={(e) => {
-                setSourceUrl(e.target.value)
-                setHasFetched(false)
-                setFetchError('')
-              }}
-              placeholder="https://..."
-              className="flex-1 px-4 py-3 rounded-xl border border-border bg-bg-card
-                text-base focus:outline-none focus:border-accent
-                placeholder:text-text-muted/50"
-            />
+        <div className="space-y-4">
+          {/* Mode toggle */}
+          <div className="flex gap-2 bg-accent-soft/50 rounded-full p-1 max-w-xs">
             <button
               type="button"
-              onClick={handleFetchUrl}
-              disabled={fetching || !sourceUrl.trim()}
-              className="px-5 py-3 rounded-xl bg-accent text-white font-medium
-                hover:opacity-90 transition-opacity disabled:opacity-50
-                cursor-pointer border-none shrink-0"
+              onClick={() => setAddMode('url')}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-full transition-all
+                cursor-pointer border-none
+                ${addMode === 'url'
+                  ? 'bg-bg-card text-text shadow-sm'
+                  : 'bg-transparent text-text-muted hover:text-text'
+                }`}
             >
-              {fetching ? 'Fetching...' : 'Fetch'}
+              From URL
+            </button>
+            <button
+              type="button"
+              onClick={() => setAddMode('photo')}
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-full transition-all
+                cursor-pointer border-none
+                ${addMode === 'photo'
+                  ? 'bg-bg-card text-text shadow-sm'
+                  : 'bg-transparent text-text-muted hover:text-text'
+                }`}
+            >
+              From Photo
             </button>
           </div>
-          {fetchError && (
-            <p className="text-sm text-accent">{fetchError}</p>
-          )}
 
-          {!hasFetched && !sourceUrl.trim() && (
-            <p className="text-sm text-text-muted">
-              or just fill in the details below
-            </p>
+          {addMode === 'url' ? (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-text">
+                Paste a recipe URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={sourceUrl}
+                  onChange={(e) => {
+                    setSourceUrl(e.target.value)
+                    setHasFetched(false)
+                    setFetchError('')
+                  }}
+                  placeholder="https://..."
+                  className="flex-1 px-4 py-3 rounded-xl border border-border bg-bg-card
+                    text-base focus:outline-none focus:border-accent
+                    placeholder:text-text-muted/50"
+                />
+                <button
+                  type="button"
+                  onClick={handleFetchUrl}
+                  disabled={fetching || !sourceUrl.trim()}
+                  className="px-5 py-3 rounded-xl bg-accent text-white font-medium
+                    hover:opacity-90 transition-opacity disabled:opacity-50
+                    cursor-pointer border-none shrink-0"
+                >
+                  {fetching ? 'Fetching...' : 'Fetch'}
+                </button>
+              </div>
+              {fetchError && (
+                <p className="text-sm text-accent">{fetchError}</p>
+              )}
+
+              {!hasFetched && !sourceUrl.trim() && (
+                <p className="text-sm text-text-muted">
+                  or just fill in the details below
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-text">
+                Snap a recipe photo
+              </label>
+              <p className="text-sm text-text-muted">
+                Take a photo of a recipe from a book, magazine, or handwritten note.
+              </p>
+
+              {scanning ? (
+                <div className="flex items-center gap-3 py-8 justify-center text-text-muted">
+                  <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Reading recipe...
+                </div>
+              ) : !hasFetched ? (
+                <label
+                  className="flex flex-col items-center justify-center gap-3 py-10 px-6
+                    rounded-2xl border-2 border-dashed border-border/60
+                    hover:border-accent/40 bg-bg-card/50 transition-colors cursor-pointer"
+                >
+                  <svg className="w-10 h-10 text-text-muted/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+                  </svg>
+                  <span className="text-sm text-text-muted">
+                    Tap to take or choose a photo
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleScanPhoto(file)
+                    }}
+                  />
+                </label>
+              ) : null}
+
+              {scanError && (
+                <p className="text-sm text-accent">{scanError}</p>
+              )}
+            </div>
           )}
         </div>
       )}

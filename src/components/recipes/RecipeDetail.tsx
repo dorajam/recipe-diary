@@ -1,5 +1,4 @@
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { useAuth } from '../../hooks/use-auth'
 import {
   useRecipe,
   useRecipeImages,
@@ -14,7 +13,6 @@ import { CommentThread } from './CommentThread'
 export function RecipeDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { profile } = useAuth()
   const { data: recipe, isLoading } = useRecipe(id)
   const { data: images } = useRecipeImages(id)
   const deleteRecipe = useDeleteRecipe()

@@ -61,9 +61,13 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
           <button
             onClick={handleQuickLog}
             disabled={addLog.isPending}
-            className="px-4 py-2 rounded-full text-sm bg-teal text-white
-              hover:opacity-90 transition-opacity cursor-pointer border-none font-medium
-              shadow-sm"
+            className={`px-4 py-2 rounded-full text-sm font-medium
+              transition-all cursor-pointer
+              ${
+                logs?.length
+                  ? 'bg-teal text-white border-none shadow-sm hover:opacity-90'
+                  : 'bg-transparent text-teal border border-teal/40 hover:bg-teal hover:text-white'
+              }`}
           >
             I made this!
           </button>

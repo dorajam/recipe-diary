@@ -28,15 +28,15 @@ export function Header() {
           {recipes && recipes.length > 1 && (
             <button
               onClick={handleShuffle}
-              title="Surprise me!"
-              aria-label="Surprise me!"
-              className="w-9 h-9 rounded-full flex items-center justify-center
-                text-text-muted hover:text-accent hover:bg-accent-soft/50
-                transition-colors cursor-pointer bg-transparent border-none"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full
+                text-sm text-text-muted hover:text-accent hover:bg-accent-soft/50
+                transition-colors cursor-pointer bg-transparent border border-border/60
+                hover:border-accent/30"
             >
-              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
+              Surprise me
             </button>
           )}
 

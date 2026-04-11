@@ -96,12 +96,63 @@ export function RecipeList() {
   const hasActiveFilters = statusFilter !== 'all' || categoryFilter !== 'all'
   const filterCount = (statusFilter !== 'all' ? 1 : 0) + (categoryFilter !== 'all' ? 1 : 0)
 
+  // Find the other person's recent additions
+  const friendRecipes = recipes.filter((r) => r.added_by !== user?.id)
+  const friendProfile = friendRecipes[0]?.profiles
+  const friendRecentCount = friendRecipes.filter((r) => {
+    const age = Date.now() - new Date(r.created_at).getTime()
+    return age < 7 * 24 * 60 * 60 * 1000 // last 7 days
+  }).length
+
+  // All unique contributors
+  const contributors = recipes.reduce<Record<string, typeof recipes[0]['profiles']>>((acc, r) => {
+    acc[r.added_by] = r.profiles
+    return acc
+  }, {})
+  const contributorList = Object.values(contributors)
+
   return (
     <div className="space-y-8">
       {/* Greeting */}
-      <h2 className="text-2xl m-0 tracking-tight pb-2">
-        {getGreeting()}{profile ? `, ${profile.display_name.split(' ')[0]}` : ''}
-      </h2>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl m-0 tracking-tight">
+            {getGreeting()}{profile ? `, ${profile.display_name.split(' ')[0]}` : ''}
+          </h2>
+
+          {/* Both avatars */}
+          {contributorList.length > 1 && (
+            <div className="flex -space-x-2">
+              {contributorList.map((p) => (
+                p.avatar_url ? (
+                  <img
+                    key={p.id}
+                    src={p.avatar_url}
+                    alt={p.display_name}
+                    className="w-8 h-8 rounded-full border-2 border-bg"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div
+                    key={p.id}
+                    className="w-8 h-8 rounded-full border-2 border-bg flex items-center justify-center text-white text-xs font-medium"
+                    style={{ backgroundColor: p.accent_colour }}
+                  >
+                    {p.display_name.charAt(0).toUpperCase()}
+                  </div>
+                )
+              ))}
+            </div>
+          )}
+        </div>
+
+        {friendProfile && friendRecentCount > 0 && (
+          <p className="text-sm text-text-muted/70 m-0">
+            {friendProfile.display_name.split(' ')[0]} added {friendRecentCount}{' '}
+            {friendRecentCount === 1 ? 'recipe' : 'recipes'} this week
+          </p>
+        )}
+      </div>
 
       {/* Search */}
       <div className="space-y-3">

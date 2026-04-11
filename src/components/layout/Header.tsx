@@ -1,7 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/use-auth'
 import { useRecipes } from '../../hooks/use-recipes'
-import { Sparkles } from '../illustrations/Doodles'
 
 export function Header() {
   const { profile, signOut } = useAuth()
@@ -18,10 +17,14 @@ export function Header() {
     <header className="border-b border-border bg-bg/90 backdrop-blur-md sticky top-0 z-10">
       <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link to="/" className="no-underline group cursor-pointer">
-          <h1 className="text-xl tracking-tight text-text m-0 flex items-center gap-1.5">
-            What's <span className="text-accent">Cooking</span>
-            <Sparkles className="w-4 h-4 text-sunny" />
-          </h1>
+          <div className="relative">
+            <h1 className="text-xl tracking-tight text-text m-0">
+              What's <span className="text-accent">Cooking</span>
+            </h1>
+            <svg className="absolute -bottom-1 left-0 w-full h-[6px]" viewBox="0 0 100 6" preserveAspectRatio="none" fill="none">
+              <path d="M0 4 Q25 0 50 3 Q75 6 100 2" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.4" />
+            </svg>
+          </div>
         </Link>
 
         <div className="flex items-center gap-3">

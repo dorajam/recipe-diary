@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import type { RecipeWithProfile, RecipeImage, RecipeStatus } from '../../lib/types'
 import { PlateDoodle } from '../illustrations/Doodles'
 
-const THREE_DAYS = 3 * 24 * 60 * 60 * 1000
+const ONE_DAY = 24 * 60 * 60 * 1000
 
 interface RecipeCardProps {
   recipe: RecipeWithProfile
@@ -18,7 +18,7 @@ const STATUS_LABEL: Record<RecipeStatus, { text: string; className: string }> = 
 
 export function RecipeCard({ recipe, image, rotation = '0deg', status }: RecipeCardProps) {
   const profile = recipe.profiles
-  const isNew = Date.now() - new Date(recipe.created_at).getTime() < THREE_DAYS
+  const isNew = Date.now() - new Date(recipe.created_at).getTime() < ONE_DAY
 
   return (
     <Link

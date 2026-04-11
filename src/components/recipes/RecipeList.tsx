@@ -24,6 +24,15 @@ function getGreeting(): string {
   return 'Good evening'
 }
 
+const NICKNAMES: Record<string, string> = {
+  'athenafung25@gmail.com': 'Feeny',
+  'sabrinaeandrenacci@gmail.com': 'Beeny',
+}
+
+function getNickname(email: string, fallbackName: string): string {
+  return NICKNAMES[email] || fallbackName.split(' ')[0]
+}
+
 function matchesSearch(recipe: RecipeWithProfile, query: string): boolean {
   const q = query.toLowerCase()
   if (recipe.title.toLowerCase().includes(q)) return true
@@ -117,7 +126,7 @@ export function RecipeList() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl m-0 tracking-tight">
-            {getGreeting()}{profile ? `, ${profile.display_name.split(' ')[0]}` : ''}
+            {getGreeting()}{profile ? `, ${getNickname(profile.email, profile.display_name)}` : ''}
           </h2>
 
           {/* Both avatars */}
@@ -148,7 +157,7 @@ export function RecipeList() {
 
         {friendProfile && friendRecentCount > 0 && (
           <p className="text-sm text-text-muted/70 m-0">
-            {friendProfile.display_name.split(' ')[0]} added {friendRecentCount}{' '}
+            {getNickname(friendProfile.email, friendProfile.display_name)} added {friendRecentCount}{' '}
             {friendRecentCount === 1 ? 'recipe' : 'recipes'} this week
           </p>
         )}

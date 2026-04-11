@@ -18,8 +18,11 @@ export function Header() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
         <Link to="/" className="no-underline group cursor-pointer shrink-0">
           <div className="relative">
-            <h1 className="text-xl tracking-tight text-text m-0">
+            <h1 className="text-lg sm:text-xl tracking-tight text-text m-0 leading-tight">
               What's <span className="text-accent">Cooking</span>
+              <span className="block text-[11px] sm:text-xs text-text-muted/60 font-normal tracking-normal">
+                with Feeny & Beeny
+              </span>
             </h1>
             <svg className="absolute -bottom-1 left-0 w-full h-[6px]" viewBox="0 0 100 6" preserveAspectRatio="none" fill="none">
               <path d="M0 4 Q25 0 50 3 Q75 6 100 2" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.4" />

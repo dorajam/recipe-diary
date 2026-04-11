@@ -5,17 +5,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 }
 
+interface ImageInput {
+  data: string
+  media_type?: string
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders })
   }
 
   try {
-    const { image, media_type } = await req.json()
+    const body = await req.json()
 
-    if (!image) {
+    // Support both single image and multiple images
+    let images: ImageInput[]
+    if (body.images && Array.isArray(body.images)) {
+      images = body.images
+    } else if (body.image) {
+      images = [{ data: body.image, media_type: body.media_type }]
+    } else {
       return new Response(
-        JSON.stringify({ error: "image (base64) is required" }),
+        JSON.stringify({ error: "image or images[] is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       )
     }
@@ -28,31 +39,21 @@ Deno.serve(async (req) => {
       )
     }
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+    // Build content array: all images first, then the prompt
+    const content: Record<string, unknown>[] = images.map((img) => ({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: img.media_type || "image/jpeg",
+        data: img.data,
       },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4096,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: media_type || "image/jpeg",
-                  data: image,
-                },
-              },
-              {
-                type: "text",
-                text: `Extract the recipe from this image. Return ONLY valid JSON with this exact structure, no other text:
+    }))
+
+    const photoWord = images.length === 1 ? "this image" : "these images"
+
+    content.push({
+      type: "text",
+      text: `Extract the recipe from ${photoWord}. The images are pages/photos of the same recipe. Return ONLY valid JSON with this exact structure, no other text:
 
 {
   "title": "Recipe title",
@@ -68,15 +69,25 @@ Deno.serve(async (req) => {
 }
 
 Rules:
+- Combine information across all images into a single recipe.
 - Extract all ingredients with amount, unit, and item separated. If amount/unit aren't clear, leave them as empty strings.
 - Extract all steps as an ordered array of strings.
-- If the image is not a recipe or is unreadable, return: { "error": "Could not extract a recipe from this image" }
+- If the images are not a recipe or are unreadable, return: { "error": "Could not extract a recipe from this image" }
 - Preserve the original language of the recipe.
 - Return ONLY the JSON object, no markdown fences or extra text.`,
-              },
-            ],
-          },
-        ],
+    })
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 4096,
+        messages: [{ role: "user", content }],
       }),
     })
 

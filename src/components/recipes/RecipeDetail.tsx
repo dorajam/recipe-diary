@@ -18,6 +18,7 @@ export function RecipeDetail() {
   const deleteRecipe = useDeleteRecipe()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [activeTab, setActiveTab] = useState<'recipe' | 'notes'>('recipe')
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
 
   if (isLoading) {
     return (
@@ -37,8 +38,9 @@ export function RecipeDetail() {
   }
 
   const author = recipe.profiles
-  const heroImage = images?.[0]
-  const galleryImages = images?.slice(1) || []
+  const allImages = images || []
+  const activeImage = allImages[activeImageIndex]
+  const isSourcePhoto = activeImage?.image_type === 'source_photo'
 
   async function handleDelete() {
     if (!id) return
@@ -56,18 +58,56 @@ export function RecipeDetail() {
         &larr; All recipes
       </Link>
 
-      {/* Hero image */}
-      {heroImage && (
-        <div className="rounded-2xl overflow-hidden shadow-lg -rotate-[0.5deg]">
-          <img
-            src={heroImage.image_url}
-            alt=""
-            className="w-full max-h-[500px] object-cover"
-          />
-          {heroImage.caption && (
-            <p className="text-sm text-text-muted italic px-4 py-2 bg-bg-card">
-              {heroImage.caption}
-            </p>
+      {/* Images */}
+      {activeImage && (
+        <div className="space-y-2">
+          <div className="relative rounded-2xl overflow-hidden shadow-lg -rotate-[0.5deg]">
+            <img
+              src={activeImage.image_url}
+              alt=""
+              className={`w-full ${isSourcePhoto ? 'object-contain' : 'max-h-[500px] object-cover'}`}
+            />
+            {activeImage.caption && (
+              <p className="text-sm text-text-muted italic px-4 py-2 bg-bg-card">
+                {activeImage.caption}
+              </p>
+            )}
+
+            {/* Prev/Next arrows */}
+            {allImages.length > 1 && (
+              <>
+                <button
+                  onClick={() => setActiveImageIndex((i) => (i - 1 + allImages.length) % allImages.length)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full
+                    bg-black/40 hover:bg-black/60 text-white flex items-center justify-center
+                    cursor-pointer border-none transition-colors backdrop-blur-sm"
+                >
+                  &lsaquo;
+                </button>
+                <button
+                  onClick={() => setActiveImageIndex((i) => (i + 1) % allImages.length)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full
+                    bg-black/40 hover:bg-black/60 text-white flex items-center justify-center
+                    cursor-pointer border-none transition-colors backdrop-blur-sm"
+                >
+                  &rsaquo;
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Dots */}
+          {allImages.length > 1 && (
+            <div className="flex justify-center gap-1.5">
+              {allImages.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImageIndex(i)}
+                  className={`w-2 h-2 rounded-full border-none cursor-pointer transition-all
+                    ${i === activeImageIndex ? 'bg-accent scale-125' : 'bg-border hover:bg-text-muted/50'}`}
+                />
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -246,41 +286,12 @@ export function RecipeDetail() {
             )}
 
             {/* Photo only — the images themselves are the content */}
-            {recipe.content_type === 'photo_only' && !heroImage && (
+            {recipe.content_type === 'photo_only' && allImages.length === 0 && (
               <p className="text-text-muted italic">
                 No photos uploaded yet.
               </p>
             )}
           </div>
-
-          {/* Gallery */}
-          {galleryImages.length > 0 && (
-            <section className="space-y-3">
-              <h2 className="text-xl m-0">More photos</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {galleryImages.map((img, i) => (
-                  <div
-                    key={img.id}
-                    className="rounded-xl overflow-hidden shadow-sm border border-border"
-                    style={{
-                      transform: `rotate(${i % 2 === 0 ? '0.5' : '-0.7'}deg)`,
-                    }}
-                  >
-                    <img
-                      src={img.image_url}
-                      alt={img.caption || ''}
-                      className="w-full object-cover"
-                    />
-                    {img.caption && (
-                      <p className="text-xs text-text-muted italic px-3 py-2">
-                        {img.caption}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
 
           {/* Actions */}
           <div className="flex items-center gap-3 pt-4 border-t border-border">

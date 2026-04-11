@@ -55,6 +55,7 @@ export function RecipeForm() {
   const [addMode, setAddMode] = useState<'url' | 'photo'>('url')
   const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState('')
+  const [scanPhotos, setScanPhotos] = useState<File[]>([])
 
   const hasPopulated = useRef(false)
 
@@ -115,22 +116,30 @@ export function RecipeForm() {
     }
   }
 
-  async function handleScanPhoto(file: File) {
+  async function handleScanPhotos() {
+    if (scanPhotos.length === 0) return
     setScanning(true)
     setScanError('')
 
     try {
       const { resizeImage } = await import('../../lib/image-resize')
-      const resized = await resizeImage(file)
 
-      // Convert blob to base64
-      const buffer = await resized.arrayBuffer()
-      const base64 = btoa(
-        new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''),
+      // Resize all photos and convert to base64
+      const images = await Promise.all(
+        scanPhotos.map(async (file) => {
+          const resized = await resizeImage(file)
+          const buffer = await resized.arrayBuffer()
+          const base64 = btoa(
+            new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''),
+          )
+          return { blob: resized, data: base64, media_type: resized.type || 'image/jpeg' }
+        }),
       )
 
       const { data, error } = await supabase.functions.invoke('ocr-recipe', {
-        body: { image: base64, media_type: resized.type || 'image/jpeg' },
+        body: {
+          images: images.map(({ data, media_type }) => ({ data, media_type })),
+        },
       })
 
       if (error) throw error
@@ -143,15 +152,15 @@ export function RecipeForm() {
       if (scraped.steps?.length) setSteps(scraped.steps)
       if (scraped.servings) setServings(scraped.servings)
 
-      // Add the scanned photo as a recipe image too
-      setPendingImages((prev) => [...prev, resized])
+      // Add all scanned photos as recipe images
+      setPendingImages((prev) => [...prev, ...images.map((i) => i.blob)])
       setHasFetched(true)
     } catch (err) {
       console.error('OCR error:', err)
       setScanError(
         err instanceof Error
           ? err.message
-          : 'Could not read the recipe from that photo. You can still add it manually.',
+          : 'Could not read the recipe from those photos. You can still add it manually.',
       )
     } finally {
       setScanning(false)
@@ -296,10 +305,10 @@ export function RecipeForm() {
           ) : (
             <div className="space-y-3">
               <label className="block text-sm font-medium text-text">
-                Snap a recipe photo
+                Snap recipe photos
               </label>
               <p className="text-sm text-text-muted">
-                Take a photo of a recipe from a book, magazine, or handwritten note.
+                Take one or more photos of a recipe from a book, magazine, or handwritten note.
               </p>
 
               {scanning ? (
@@ -308,32 +317,75 @@ export function RecipeForm() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Reading recipe...
+                  Reading {scanPhotos.length > 1 ? `${scanPhotos.length} photos` : 'recipe'}...
                 </div>
               ) : !hasFetched ? (
-                <label
-                  className="flex flex-col items-center justify-center gap-3 py-10 px-6
-                    rounded-2xl border-2 border-dashed border-border/60
-                    hover:border-accent/40 bg-bg-card/50 transition-colors cursor-pointer"
-                >
-                  <svg className="w-10 h-10 text-text-muted/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
-                  </svg>
-                  <span className="text-sm text-text-muted">
-                    Tap to take or choose a photo
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) handleScanPhoto(file)
-                    }}
-                  />
-                </label>
+                <>
+                  {/* Photo thumbnails */}
+                  {scanPhotos.length > 0 && (
+                    <div className="flex gap-2 flex-wrap">
+                      {scanPhotos.map((file, i) => (
+                        <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border/60">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setScanPhotos((prev) => prev.filter((_, j) => j !== i))}
+                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/50
+                              text-white text-xs flex items-center justify-center cursor-pointer
+                              border-none hover:bg-black/70"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <label
+                      className="flex-1 flex flex-col items-center justify-center gap-3 py-8 px-6
+                        rounded-2xl border-2 border-dashed border-border/60
+                        hover:border-accent/40 bg-bg-card/50 transition-colors cursor-pointer"
+                    >
+                      <svg className="w-8 h-8 text-text-muted/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+                      </svg>
+                      <span className="text-sm text-text-muted">
+                        {scanPhotos.length === 0 ? 'Tap to add a photo' : 'Add another page'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            setScanPhotos((prev) => [...prev, file])
+                            setScanError('')
+                          }
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {scanPhotos.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleScanPhotos}
+                      className="w-full px-5 py-3 rounded-xl bg-accent text-white font-medium
+                        hover:opacity-90 transition-opacity cursor-pointer border-none"
+                    >
+                      Scan {scanPhotos.length === 1 ? 'photo' : `${scanPhotos.length} photos`}
+                    </button>
+                  )}
+                </>
               ) : null}
 
               {scanError && (

@@ -12,6 +12,8 @@ interface ScrapedRecipe {
   steps: string[]
   servings: string | null
   image_url: string | null
+  image_data?: string | null
+  image_type?: string | null
 }
 
 Deno.serve(async (req) => {
@@ -50,6 +52,27 @@ Deno.serve(async (req) => {
 
     // Try to extract JSON-LD Recipe schema
     const recipe = extractJsonLdRecipe(html) ?? extractBasicRecipe(html, url)
+
+    // Fetch and inline the image to avoid CORS issues on the client
+    if (recipe.image_url) {
+      try {
+        const imgRes = await fetch(recipe.image_url, {
+          headers: { "Accept": "image/*" },
+        })
+        if (imgRes.ok) {
+          const buf = await imgRes.arrayBuffer()
+          const bytes = new Uint8Array(buf)
+          let binary = ""
+          for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i])
+          }
+          recipe.image_data = btoa(binary)
+          recipe.image_type = imgRes.headers.get("content-type") || "image/jpeg"
+        }
+      } catch {
+        // Image fetch failed, client can still work without it
+      }
+    }
 
     return new Response(JSON.stringify(recipe), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

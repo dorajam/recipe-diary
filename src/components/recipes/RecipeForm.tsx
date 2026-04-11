@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/use-auth'
 import {
@@ -24,6 +24,8 @@ interface ScrapedRecipe {
   steps: string[]
   servings: string | null
   image_url: string | null
+  image_data?: string | null
+  image_type?: string | null
 }
 
 export function RecipeForm() {
@@ -40,24 +42,49 @@ export function RecipeForm() {
   const uploadImage = useUploadImage()
   const deleteImage = useDeleteImage()
 
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [sourceUrl, setSourceUrl] = useState('')
-  const [ingredients, setIngredients] = useState<Ingredient[]>([])
-  const [steps, setSteps] = useState<string[]>([])
-  const [servings, setServings] = useState('')
-  const [categories, setCategories] = useState<RecipeCategory[]>([])
+  const DRAFT_KEY = 'recipe-draft'
+
+  function loadDraft() {
+    if (isEditing) return null
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY)
+      return raw ? JSON.parse(raw) : null
+    } catch { return null }
+  }
+
+  const draft = useRef(loadDraft())
+
+  const [title, setTitle] = useState(draft.current?.title ?? '')
+  const [description, setDescription] = useState(draft.current?.description ?? '')
+  const [sourceUrl, setSourceUrl] = useState(draft.current?.sourceUrl ?? '')
+  const [ingredients, setIngredients] = useState<Ingredient[]>(draft.current?.ingredients ?? [])
+  const [steps, setSteps] = useState<string[]>(draft.current?.steps ?? [])
+  const [servings, setServings] = useState(draft.current?.servings ?? '')
+  const [categories, setCategories] = useState<RecipeCategory[]>(draft.current?.categories ?? [])
   const [pendingImages, setPendingImages] = useState<Blob[]>([])
   const [saving, setSaving] = useState(false)
   const [fetching, setFetching] = useState(false)
   const [fetchError, setFetchError] = useState('')
-  const [hasFetched, setHasFetched] = useState(false)
-  const [addMode, setAddMode] = useState<'url' | 'photo'>('url')
+  const [hasFetched, setHasFetched] = useState(draft.current?.hasFetched ?? false)
+  const [addMode, setAddMode] = useState<'url' | 'photo'>(draft.current?.addMode ?? 'url')
   const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState('')
   const [scanPhotos, setScanPhotos] = useState<File[]>([])
 
   const hasPopulated = useRef(false)
+
+  // Persist draft to sessionStorage
+  const saveDraft = useCallback(() => {
+    if (isEditing) return
+    const data = { title, description, sourceUrl, ingredients, steps, servings, categories, hasFetched, addMode }
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(data))
+  }, [title, description, sourceUrl, ingredients, steps, servings, categories, hasFetched, addMode, isEditing])
+
+  useEffect(() => { saveDraft() }, [saveDraft])
+
+  function clearDraft() {
+    sessionStorage.removeItem(DRAFT_KEY)
+  }
 
   useEffect(() => {
     if (existingRecipe && !hasPopulated.current) {
@@ -93,17 +120,19 @@ export function RecipeForm() {
       if (scraped.steps?.length) setSteps(scraped.steps)
       if (scraped.servings) setServings(scraped.servings)
 
-      // If the recipe has an image, fetch and resize it
-      if (scraped.image_url) {
+      // Use the inlined image data from the Edge Function (avoids CORS)
+      if (scraped.image_data) {
         try {
-          const imgResponse = await fetch(scraped.image_url)
-          const blob = await imgResponse.blob()
+          const binary = atob(scraped.image_data)
+          const bytes = new Uint8Array(binary.length)
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+          const blob = new Blob([bytes], { type: scraped.image_type || 'image/jpeg' })
           const file = new File([blob], 'recipe.jpg', { type: blob.type })
           const { resizeImage } = await import('../../lib/image-resize')
           const resized = await resizeImage(file)
           setPendingImages((prev) => [...prev, resized])
         } catch {
-          // Image fetch failed, that's okay
+          // Image processing failed, that's okay
         }
       }
 
@@ -214,6 +243,7 @@ export function RecipeForm() {
         })
       }
 
+      clearDraft()
       navigate(`/recipes/${recipeId}`)
     } catch (err) {
       console.error('Failed to save recipe:', err)

@@ -3,8 +3,8 @@ import type { Profile } from './types'
 // Map known accounts to the Trattoria palette. Falls back to the DB
 // accent_colour for any unknown profile.
 const PERSON_COLORS: Record<string, string> = {
-  'athenafung25@gmail.com':       'var(--color-tomato)',
-  'sabrinaeandrenacci@gmail.com': 'var(--color-basil)',
+  'athenafung25@gmail.com':       'var(--color-rose)',
+  'sabrinaeandrenacci@gmail.com': 'var(--color-olive)',
 }
 
 export function personColor(profile: Profile): string {

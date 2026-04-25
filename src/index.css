@@ -21,6 +21,8 @@
   /* Electric trattoria palette */
   --color-tomato: #FF2D1A;
   --color-basil: #7DAD2E;
+  --color-olive: #6E7837;
+  --color-rose: #E47A7A;
   --color-lemon: #FFD21A;
   --color-scotch: #FF3500;
   --color-ackee: #FFB800;
@@ -34,8 +36,8 @@
   --color-lemon-soft: #FFF4C2;
 
   /* Person colors — see lib/person-color.ts for the email-keyed override */
-  --color-person-a: #FF2D1A;
-  --color-person-b: #7DAD2E;
+  --color-person-a: #E47A7A;
+  --color-person-b: #6E7837;
 
   /* Legacy aliases so any straggling utilities don't blow up */
   --color-accent: #FF2D1A;

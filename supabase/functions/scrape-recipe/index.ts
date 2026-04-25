@@ -95,18 +95,21 @@ function extractJsonLdRecipe(html: string): ScrapedRecipe | null {
 
   while ((match = jsonLdRegex.exec(html)) !== null) {
     try {
-      let data = JSON.parse(match[1].trim())
+      const data = JSON.parse(match[1].trim())
 
-      // Handle @graph arrays (common in WordPress/Yoast)
-      if (data["@graph"]) {
-        data = data["@graph"]
+      // Collect the root, plus any @graph children. Some sites (e.g. Ricardo)
+      // put the Recipe at the root AND have a sibling @graph with WebSite/etc.
+      const candidates: Record<string, unknown>[] = []
+      const roots = Array.isArray(data) ? data : [data]
+      for (const root of roots) {
+        candidates.push(root)
+        const graph = root["@graph"]
+        if (Array.isArray(graph)) candidates.push(...graph)
       }
 
-      // Normalize to array
-      const items = Array.isArray(data) ? data : [data]
-
-      for (const item of items) {
-        if (item["@type"] === "Recipe" || (Array.isArray(item["@type"]) && item["@type"].includes("Recipe"))) {
+      for (const item of candidates) {
+        const t = item["@type"]
+        if (t === "Recipe" || (Array.isArray(t) && t.includes("Recipe"))) {
           return parseSchemaRecipe(item)
         }
       }
@@ -138,22 +141,28 @@ function parseSchemaRecipe(schema: Record<string, unknown>): ScrapedRecipe {
   const rawIngredients = (schema.recipeIngredient || schema.ingredients || []) as string[]
   const ingredients = rawIngredients.map(parseIngredientString)
 
-  // Parse steps
+  // Parse steps. Sites can use a flat list of HowToStep, a single string, or
+  // group steps under HowToSection containers — in which case we flatten so each
+  // HowToStep becomes its own line.
   let steps: string[] = []
   const rawInstructions = schema.recipeInstructions
+
+  function flattenStep(step: unknown): string[] {
+    if (typeof step === "string") return [step]
+    if (!step || typeof step !== "object") return [String(step)]
+    const obj = step as Record<string, unknown>
+    if (Array.isArray(obj.itemListElement)) {
+      return obj.itemListElement.flatMap(flattenStep)
+    }
+    if ("text" in obj) return [String(obj.text)]
+    return []
+  }
+
   if (Array.isArray(rawInstructions)) {
-    steps = rawInstructions.map((step) => {
-      let text = ""
-      if (typeof step === "string") text = step
-      else if (step && typeof step === "object" && "text" in step) text = String(step.text)
-      else if (step && typeof step === "object" && "itemListElement" in step) {
-        const subSteps = step.itemListElement as Array<Record<string, unknown>>
-        text = subSteps.map((s) => String(s.text || "")).join(" ")
-      } else {
-        text = String(step)
-      }
-      return decodeHtmlEntities(text)
-    })
+    steps = rawInstructions
+      .flatMap(flattenStep)
+      .map((s) => decodeHtmlEntities(s).trim())
+      .filter(Boolean)
   } else if (typeof rawInstructions === "string") {
     steps = rawInstructions.split(/\n+/).filter(Boolean).map(decodeHtmlEntities)
   }
@@ -206,11 +215,11 @@ function extractBasicRecipe(html: string, url: string): ScrapedRecipe {
 
   const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i)
   if (ogTitleMatch) {
-    title = ogTitleMatch[1]
+    title = decodeHtmlEntities(ogTitleMatch[1])
   } else {
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
     if (titleMatch) {
-      title = titleMatch[1].trim()
+      title = decodeHtmlEntities(titleMatch[1].trim())
     }
   }
 
@@ -218,7 +227,7 @@ function extractBasicRecipe(html: string, url: string): ScrapedRecipe {
   let description: string | null = null
   const ogDescMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i)
   if (ogDescMatch) {
-    description = ogDescMatch[1]
+    description = decodeHtmlEntities(ogDescMatch[1])
   }
 
   // Try og:image

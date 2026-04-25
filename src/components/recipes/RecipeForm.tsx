@@ -12,6 +12,7 @@ import {
 } from '../../hooks/use-recipes'
 import type { Ingredient, RecipeCategory } from '../../lib/types'
 import { CATEGORIES } from '../../lib/categories'
+import { decodeHtmlEntities } from '../../lib/decode-html'
 import { ImageUpload } from './ImageUpload'
 import { IngredientEditor } from './IngredientEditor'
 import { StepEditor } from './StepEditor'
@@ -27,6 +28,57 @@ interface ScrapedRecipe {
   image_data?: string | null
   image_type?: string | null
 }
+
+const CATEGORY_IT: Record<RecipeCategory, string> = {
+  breakfast: 'Colazione',
+  starter:   'Antipasto',
+  main:      'Primo',
+  side:      'Contorno',
+  soup_stew: 'Zuppa',
+  salad:     'Insalata',
+  dessert:   'Dolce',
+  baking:    'Da forno',
+  snack:     'Spuntino',
+  drink:     'Da bere',
+  sauce_dip: 'Salsa',
+}
+
+// Reusable label with English / italian eyebrow pair
+function FieldLabel({
+  en,
+  it,
+  optional = false,
+}: {
+  en: string
+  it: string
+  optional?: boolean
+}) {
+  return (
+    <div className="flex items-baseline gap-2 mb-1.5">
+      <span className="font-display italic font-medium text-text text-[15px] leading-none">
+        {en}
+        {optional && (
+          <span className="font-mono text-[10px] text-text-muted ml-1.5 not-italic font-normal">
+            optional
+          </span>
+        )}
+      </span>
+      <span
+        className="font-mono font-bold text-text-muted"
+        style={{ fontSize: 9, letterSpacing: '0.22em' }}
+      >
+        {it.toUpperCase()}
+      </span>
+    </div>
+  )
+}
+
+const inputClass =
+  'w-full px-3.5 py-2.5 font-mono text-[14px] bg-bg-card text-text ' +
+  'border border-border placeholder:text-text-muted/50 placeholder:italic ' +
+  'focus:outline-none focus:border-tomato transition-colors'
+
+const inputStyle = { borderRadius: 2 }
 
 export function RecipeForm() {
   const { id } = useParams()
@@ -73,7 +125,6 @@ export function RecipeForm() {
 
   const hasPopulated = useRef(false)
 
-  // Persist draft to sessionStorage
   const saveDraft = useCallback(() => {
     if (isEditing) return
     const data = { title, description, sourceUrl, ingredients, steps, servings, categories, hasFetched, addMode }
@@ -114,13 +165,20 @@ export function RecipeForm() {
       if (error) throw error
 
       const scraped = data as ScrapedRecipe
-      if (scraped.title) setTitle(scraped.title)
-      if (scraped.description) setDescription(scraped.description)
-      if (scraped.ingredients?.length) setIngredients(scraped.ingredients)
-      if (scraped.steps?.length) setSteps(scraped.steps)
-      if (scraped.servings) setServings(scraped.servings)
+      if (scraped.title) setTitle(decodeHtmlEntities(scraped.title))
+      if (scraped.description) setDescription(decodeHtmlEntities(scraped.description))
+      if (scraped.ingredients?.length) {
+        setIngredients(
+          scraped.ingredients.map((ing) => ({
+            amount: decodeHtmlEntities(ing.amount),
+            unit: decodeHtmlEntities(ing.unit),
+            item: decodeHtmlEntities(ing.item),
+          })),
+        )
+      }
+      if (scraped.steps?.length) setSteps(scraped.steps.map(decodeHtmlEntities))
+      if (scraped.servings) setServings(decodeHtmlEntities(scraped.servings))
 
-      // Use the inlined image data from the Edge Function (avoids CORS)
       if (scraped.image_data) {
         try {
           const binary = atob(scraped.image_data)
@@ -153,7 +211,6 @@ export function RecipeForm() {
     try {
       const { resizeImage } = await import('../../lib/image-resize')
 
-      // Resize all photos and convert to base64
       const images = await Promise.all(
         scanPhotos.map(async (file) => {
           const resized = await resizeImage(file)
@@ -175,13 +232,20 @@ export function RecipeForm() {
       if (data.error) throw new Error(data.error)
 
       const scraped = data as ScrapedRecipe
-      if (scraped.title) setTitle(scraped.title)
-      if (scraped.description) setDescription(scraped.description)
-      if (scraped.ingredients?.length) setIngredients(scraped.ingredients)
-      if (scraped.steps?.length) setSteps(scraped.steps)
-      if (scraped.servings) setServings(scraped.servings)
+      if (scraped.title) setTitle(decodeHtmlEntities(scraped.title))
+      if (scraped.description) setDescription(decodeHtmlEntities(scraped.description))
+      if (scraped.ingredients?.length) {
+        setIngredients(
+          scraped.ingredients.map((ing) => ({
+            amount: decodeHtmlEntities(ing.amount),
+            unit: decodeHtmlEntities(ing.unit),
+            item: decodeHtmlEntities(ing.item),
+          })),
+        )
+      }
+      if (scraped.steps?.length) setSteps(scraped.steps.map(decodeHtmlEntities))
+      if (scraped.servings) setServings(decodeHtmlEntities(scraped.servings))
 
-      // Add all scanned photos as recipe images
       setPendingImages((prev) => [...prev, ...images.map((i) => i.blob)])
       setHasFetched(true)
     } catch (err) {
@@ -252,51 +316,95 @@ export function RecipeForm() {
     }
   }
 
-  // Show the full form once we've fetched/scanned, or if editing, or if manual entry
   const showFullForm = hasFetched || isEditing || (addMode === 'url' && !sourceUrl.trim())
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-8">
-      <h2 className="text-2xl tracking-tight">
-        {isEditing ? 'Edit Recipe' : 'New Recipe'}
-      </h2>
+    <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-8">
+      {/* Masthead-style header */}
+      <header className="space-y-2">
+        <div
+          className="font-mono font-bold"
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.32em',
+            color: 'var(--color-tomato)',
+          }}
+        >
+          {isEditing ? 'EDITING · IN MODIFICA' : 'NEW RECIPE · UNA NUOVA RICETTA'}
+        </div>
+        <h2
+          className="m-0 font-display italic font-medium leading-[0.95] tracking-tight"
+          style={{ fontSize: 'clamp(1.8rem, 4.5vw, 3rem)' }}
+        >
+          {isEditing ? (
+            <>
+              The <span style={{ color: 'var(--color-tomato)' }}>composition</span>.
+            </>
+          ) : (
+            <>
+              Cosa <span style={{ color: 'var(--color-tomato)' }}>cuciniamo</span>?
+            </>
+          )}
+        </h2>
+      </header>
 
-      {/* Add method — URL or Photo */}
+      {/* Add method intake (only for new recipes, before fetching) */}
       {!isEditing && (
-        <div className="space-y-4">
-          {/* Mode toggle */}
-          <div className="flex gap-2 bg-accent-soft/50 rounded-full p-1 max-w-xs">
-            <button
-              type="button"
-              onClick={() => setAddMode('url')}
-              className={`flex-1 px-4 py-2 text-sm font-medium rounded-full transition-all
-                cursor-pointer border-none
-                ${addMode === 'url'
-                  ? 'bg-bg-card text-text shadow-sm'
-                  : 'bg-transparent text-text-muted hover:text-text'
-                }`}
-            >
-              From URL
-            </button>
-            <button
-              type="button"
-              onClick={() => setAddMode('photo')}
-              className={`flex-1 px-4 py-2 text-sm font-medium rounded-full transition-all
-                cursor-pointer border-none
-                ${addMode === 'photo'
-                  ? 'bg-bg-card text-text shadow-sm'
-                  : 'bg-transparent text-text-muted hover:text-text'
-                }`}
-            >
-              From Photo
-            </button>
+        <section
+          className="border border-border bg-bg-card p-5 sm:p-6 space-y-4"
+          style={{ borderRadius: 2 }}
+        >
+          <FieldLabel en="How are we adding this?" it="Come" />
+
+          {/* Mode toggle as tabs */}
+          <div className="flex" style={{ borderBottom: '1.5px solid var(--color-border)' }}>
+            {([
+              { v: 'url',   it: 'Da un link', en: 'FROM URL' },
+              { v: 'photo', it: 'Da una foto', en: 'FROM PHOTO' },
+            ] as const).map((m) => {
+              const active = addMode === m.v
+              return (
+                <button
+                  key={m.v}
+                  type="button"
+                  onClick={() => setAddMode(m.v)}
+                  className="text-left py-2 px-4 cursor-pointer transition-colors hover:bg-bg-warm/40 bg-transparent"
+                  style={{
+                    borderBottom: active
+                      ? '2.5px solid var(--color-tomato)'
+                      : '2.5px solid transparent',
+                    marginBottom: -1.5,
+                  }}
+                >
+                  <div
+                    className="font-display italic leading-none"
+                    style={{
+                      fontSize: 16,
+                      color: active ? 'var(--color-text)' : 'var(--color-text-muted)',
+                      fontWeight: active ? 600 : 500,
+                    }}
+                  >
+                    {m.it}
+                  </div>
+                  <div
+                    className="font-mono mt-1 font-bold"
+                    style={{
+                      fontSize: 9,
+                      letterSpacing: '0.18em',
+                      color: active ? 'var(--color-tomato)' : 'var(--color-text-muted)',
+                      opacity: 0.85,
+                    }}
+                  >
+                    {m.en}
+                  </div>
+                </button>
+              )
+            })}
           </div>
 
           {addMode === 'url' ? (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text">
-                Paste a recipe URL
-              </label>
+            <div className="space-y-2 pt-2">
+              <FieldLabel en="Recipe URL" it="il link" />
               <div className="flex gap-2">
                 <input
                   type="url"
@@ -307,55 +415,54 @@ export function RecipeForm() {
                     setFetchError('')
                   }}
                   placeholder="https://..."
-                  className="flex-1 px-4 py-3 rounded-xl border border-border bg-bg-card
-                    text-base focus:outline-none focus:border-accent
-                    placeholder:text-text-muted/50"
+                  className={`flex-1 ${inputClass}`}
+                  style={inputStyle}
                 />
                 <button
                   type="button"
                   onClick={handleFetchUrl}
                   disabled={fetching || !sourceUrl.trim()}
-                  className="px-5 py-3 rounded-xl bg-accent text-white font-medium
-                    hover:opacity-90 transition-opacity disabled:opacity-50
-                    cursor-pointer border-none shrink-0"
+                  className="btn-trat shrink-0 disabled:opacity-50"
                 >
-                  {fetching ? 'Fetching...' : 'Fetch'}
+                  {fetching ? 'fetching...' : 'fetch'}
                 </button>
               </div>
               {fetchError && (
-                <p className="text-sm text-accent">{fetchError}</p>
+                <p className="font-mono text-xs text-tomato m-0">{fetchError}</p>
               )}
 
               {!hasFetched && !sourceUrl.trim() && (
-                <p className="text-sm text-text-muted">
-                  or just fill in the details below
+                <p className="font-display italic text-sm text-text-muted m-0">
+                  ...or just fill in the details below.
                 </p>
               )}
             </div>
           ) : (
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-text">
-                Snap recipe photos
-              </label>
-              <p className="text-sm text-text-muted">
-                Take one or more photos of a recipe from a book, magazine, or handwritten note.
+            <div className="space-y-3 pt-2">
+              <FieldLabel en="Snap recipe photos" it="le foto" />
+              <p className="font-mono text-[12px] text-text-muted m-0 leading-[1.5]">
+                Take one or more photos of a recipe from a book, magazine, or
+                handwritten note.
               </p>
 
               {scanning ? (
-                <div className="flex items-center gap-3 py-8 justify-center text-text-muted">
+                <div className="flex items-center gap-3 py-8 justify-center font-mono text-sm text-text-muted">
                   <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Reading {scanPhotos.length > 1 ? `${scanPhotos.length} photos` : 'recipe'}...
+                  reading {scanPhotos.length > 1 ? `${scanPhotos.length} photos` : 'recipe'}...
                 </div>
               ) : !hasFetched ? (
                 <>
-                  {/* Photo thumbnails */}
                   {scanPhotos.length > 0 && (
                     <div className="flex gap-2 flex-wrap">
                       {scanPhotos.map((file, i) => (
-                        <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border/60">
+                        <div
+                          key={i}
+                          className="relative w-20 h-20 overflow-hidden border border-border"
+                          style={{ borderRadius: 2 }}
+                        >
                           <img
                             src={URL.createObjectURL(file)}
                             alt=""
@@ -363,233 +470,266 @@ export function RecipeForm() {
                           />
                           <button
                             type="button"
-                            onClick={() => setScanPhotos((prev) => prev.filter((_, j) => j !== i))}
-                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/50
-                              text-white text-xs flex items-center justify-center cursor-pointer
-                              border-none hover:bg-black/70"
+                            onClick={() =>
+                              setScanPhotos((prev) => prev.filter((_, j) => j !== i))
+                            }
+                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-text/60
+                              text-cream text-xs flex items-center justify-center cursor-pointer
+                              border-none hover:bg-text"
                           >
-                            &times;
+                            ×
                           </button>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <div className="flex gap-2">
-                    <label
-                      className="flex-1 flex flex-col items-center justify-center gap-3 py-8 px-6
-                        rounded-2xl border-2 border-dashed border-border/60
-                        hover:border-accent/40 bg-bg-card/50 transition-colors cursor-pointer"
-                    >
-                      <svg className="w-8 h-8 text-text-muted/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
-                      </svg>
-                      <span className="text-sm text-text-muted">
-                        {scanPhotos.length === 0 ? 'Tap to add a photo' : 'Add another page'}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            setScanPhotos((prev) => [...prev, file])
-                            setScanError('')
-                          }
-                          e.target.value = ''
-                        }}
-                      />
-                    </label>
-                  </div>
+                  <label
+                    className="flex flex-col items-center justify-center gap-2 py-8 px-6 cursor-pointer
+                      border-[2px] border-dashed border-border hover:border-tomato bg-bg-warm/30 transition-colors"
+                    style={{ borderRadius: 2 }}
+                  >
+                    <svg className="w-8 h-8 text-text-muted/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+                    </svg>
+                    <span className="font-display italic text-sm text-text-muted">
+                      {scanPhotos.length === 0 ? 'Tap to add a photo' : 'Add another page'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          setScanPhotos((prev) => [...prev, file])
+                          setScanError('')
+                        }
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
 
                   {scanPhotos.length > 0 && (
                     <button
                       type="button"
                       onClick={handleScanPhotos}
-                      className="w-full px-5 py-3 rounded-xl bg-accent text-white font-medium
-                        hover:opacity-90 transition-opacity cursor-pointer border-none"
+                      className="btn-trat w-full justify-center"
                     >
-                      Scan {scanPhotos.length === 1 ? 'photo' : `${scanPhotos.length} photos`}
+                      scan {scanPhotos.length === 1 ? 'photo' : `${scanPhotos.length} photos`}
                     </button>
                   )}
                 </>
               ) : null}
 
               {scanError && (
-                <p className="text-sm text-accent">{scanError}</p>
+                <p className="font-mono text-xs text-tomato m-0">{scanError}</p>
               )}
             </div>
           )}
+        </section>
+      )}
+
+      {/* Full form — two-column editorial */}
+      {(showFullForm || isEditing) && (
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(280px,360px)_1fr] gap-7 md:gap-10">
+          {/* Left column: photos, categories, servings, source */}
+          <aside className="space-y-6">
+            <div>
+              <FieldLabel en="Photos" it="le foto" />
+              <ImageUpload
+                onImagesReady={(blobs) =>
+                  setPendingImages((prev) => [...prev, ...blobs])
+                }
+                existingImages={
+                  existingImages?.map((img) => ({
+                    id: img.id,
+                    url: img.image_url,
+                  })) || []
+                }
+                onDeleteExisting={(imageId) => {
+                  const img = existingImages?.find((i) => i.id === imageId)
+                  if (img && id) {
+                    deleteImage.mutate({
+                      imageId: img.id,
+                      imageUrl: img.image_url,
+                      recipeId: id,
+                    })
+                  }
+                }}
+              />
+            </div>
+
+            <div>
+              <FieldLabel en="Categories" it="categorie" optional />
+              <div className="flex flex-wrap gap-1.5">
+                {CATEGORIES.map((c) => {
+                  const selected = categories.includes(c.value)
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() =>
+                        setCategories((prev) =>
+                          selected
+                            ? prev.filter((v) => v !== c.value)
+                            : [...prev, c.value],
+                        )
+                      }
+                      className="px-2.5 py-1 cursor-pointer transition-colors flex items-baseline gap-1.5 border-[1.5px]"
+                      style={{
+                        borderRadius: 2,
+                        background: selected ? 'var(--color-basil)' : 'transparent',
+                        borderColor: selected ? 'var(--color-basil)' : 'var(--color-border)',
+                        color: selected ? 'var(--color-cream)' : 'var(--color-text)',
+                      }}
+                    >
+                      <span
+                        className="font-display italic leading-none"
+                        style={{ fontSize: 13 }}
+                      >
+                        {CATEGORY_IT[c.value]}
+                      </span>
+                      <span
+                        className="font-mono font-bold uppercase"
+                        style={{
+                          fontSize: 8.5,
+                          letterSpacing: '0.16em',
+                          opacity: selected ? 0.9 : 0.6,
+                        }}
+                      >
+                        {c.label}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {(servings || ingredients.length > 0 || isEditing) && (
+              <div>
+                <FieldLabel en="Servings" it="porzioni" optional />
+                <input
+                  type="text"
+                  value={servings}
+                  onChange={(e) => setServings(e.target.value)}
+                  placeholder="e.g. 4-6, 1 loaf"
+                  className={`w-48 ${inputClass}`}
+                  style={inputStyle}
+                />
+              </div>
+            )}
+
+            {isEditing && (
+              <div>
+                <FieldLabel en="Source URL" it="origine" optional />
+                <input
+                  type="url"
+                  value={sourceUrl}
+                  onChange={(e) => setSourceUrl(e.target.value)}
+                  placeholder="https://..."
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+            )}
+          </aside>
+
+          {/* Right column: title + description + ingredients + steps */}
+          <main className="space-y-6">
+            <div>
+              <FieldLabel en="Title" it="il nome" />
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                placeholder="What are we making?"
+                className="w-full px-4 py-3 bg-bg-card text-text border border-border placeholder:text-text-muted/50 placeholder:italic focus:outline-none focus:border-tomato transition-colors font-display italic font-medium"
+                style={{ borderRadius: 2, fontSize: 22 }}
+              />
+            </div>
+
+            <div>
+              <FieldLabel en="Notes" it="note" optional />
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                placeholder="Any thoughts or context..."
+                className={`${inputClass} resize-y`}
+                style={inputStyle}
+              />
+            </div>
+
+            {ingredients.length > 0 && (
+              <div>
+                <div className="flex items-baseline gap-3 mb-3">
+                  <h3 className="m-0 font-display italic text-2xl">Ingredients</h3>
+                  <span
+                    className="font-mono font-bold"
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: '0.25em',
+                      color: 'var(--color-basil)',
+                    }}
+                  >
+                    INGREDIENTI
+                  </span>
+                </div>
+                <IngredientEditor
+                  ingredients={ingredients}
+                  onChange={setIngredients}
+                />
+              </div>
+            )}
+
+            {steps.length > 0 && (
+              <div>
+                <div className="flex items-baseline gap-3 mb-3">
+                  <h3 className="m-0 font-display italic text-2xl">Method</h3>
+                  <span
+                    className="font-mono font-bold"
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: '0.25em',
+                      color: 'var(--color-basil)',
+                    }}
+                  >
+                    PROCEDIMENTO
+                  </span>
+                </div>
+                <StepEditor steps={steps} onChange={setSteps} />
+              </div>
+            )}
+          </main>
         </div>
       )}
 
-      {/* Full form */}
+      {/* Footer action bar */}
       {(showFullForm || isEditing) && (
-        <>
-          {/* Title */}
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-text">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              placeholder="What are we making?"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-bg-card
-                text-base focus:outline-none focus:border-accent
-                placeholder:text-text-muted/50"
-            />
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-text">
-              Notes{' '}
-              <span className="text-text-muted font-normal">optional</span>
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              placeholder="Any thoughts or context..."
-              className="w-full px-4 py-3 rounded-xl border border-border bg-bg-card
-                text-base focus:outline-none focus:border-accent resize-y
-                placeholder:text-text-muted/50"
-            />
-          </div>
-
-          {/* Categories */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text">
-              Categories{' '}
-              <span className="text-text-muted font-normal">optional</span>
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {CATEGORIES.map((c) => {
-                const selected = categories.includes(c.value)
-                return (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() =>
-                      setCategories((prev) =>
-                        selected
-                          ? prev.filter((v) => v !== c.value)
-                          : [...prev, c.value],
-                      )
-                    }
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer border
-                      ${
-                        selected
-                          ? 'bg-sunny text-white border-sunny shadow-sm'
-                          : 'bg-bg-card text-text-muted border-border/60 hover:border-sunny/30 hover:text-text'
-                      }`}
-                  >
-                    {c.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Servings */}
-          {(servings || ingredients.length > 0) && (
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-text">
-                Servings{' '}
-                <span className="text-text-muted font-normal">optional</span>
-              </label>
-              <input
-                type="text"
-                value={servings}
-                onChange={(e) => setServings(e.target.value)}
-                placeholder="e.g. 4-6, 1 loaf"
-                className="w-48 px-3 py-2 rounded-lg border border-border bg-bg-card
-                  text-sm focus:outline-none focus:border-accent
-                  placeholder:text-text-muted/50"
-              />
-            </div>
-          )}
-
-          {/* Ingredients — shown if scraped or already present */}
-          {ingredients.length > 0 && (
-            <IngredientEditor
-              ingredients={ingredients}
-              onChange={setIngredients}
-            />
-          )}
-
-          {/* Steps — shown if scraped or already present */}
-          {steps.length > 0 && (
-            <StepEditor steps={steps} onChange={setSteps} />
-          )}
-
-          {/* Photos */}
-          <ImageUpload
-            onImagesReady={(blobs) =>
-              setPendingImages((prev) => [...prev, ...blobs])
-            }
-            existingImages={
-              existingImages?.map((img) => ({
-                id: img.id,
-                url: img.image_url,
-              })) || []
-            }
-            onDeleteExisting={(imageId) => {
-              const img = existingImages?.find((i) => i.id === imageId)
-              if (img && id) {
-                deleteImage.mutate({
-                  imageId: img.id,
-                  imageUrl: img.image_url,
-                  recipeId: id,
-                })
-              }
-            }}
-          />
-
-          {/* Source URL — shown when editing */}
-          {isEditing && (
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-text">
-                Source URL{' '}
-                <span className="text-text-muted font-normal">optional</span>
-              </label>
-              <input
-                type="url"
-                value={sourceUrl}
-                onChange={(e) => setSourceUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full px-4 py-3 rounded-xl border border-border bg-bg-card
-                  text-base focus:outline-none focus:border-accent
-                  placeholder:text-text-muted/50"
-              />
-            </div>
-          )}
-
-          {/* Submit */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={saving || !title.trim()}
-              className="px-6 py-3 rounded-xl bg-accent text-white font-medium
-                hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer
-                border-none"
-            >
-              {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Recipe'}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-6 py-3 rounded-xl border border-border text-text-muted
-                hover:text-text transition-colors cursor-pointer bg-transparent"
-            >
-              Cancel
-            </button>
-          </div>
-        </>
+        <footer
+          className="flex justify-between items-center gap-3 pt-5"
+          style={{ borderTop: '2px solid var(--color-border)' }}
+        >
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="font-mono text-[11px] uppercase font-bold text-text-muted hover:text-text cursor-pointer bg-transparent border-none"
+            style={{ letterSpacing: '0.2em' }}
+          >
+            ← cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving || !title.trim()}
+            className="btn-trat disabled:opacity-50"
+          >
+            {saving ? 'salvando...' : isEditing ? 'save changes' : 'salva ricetta'}
+          </button>
+        </footer>
       )}
     </form>
   )

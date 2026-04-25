@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { resizeImage } from '../../lib/image-resize'
+import { Tomato } from '../illustrations/Produce'
 
 interface ImageUploadProps {
   onImagesReady: (files: Blob[]) => void
@@ -46,65 +47,71 @@ export function ImageUpload({
     [handleFiles],
   )
 
+  const hasAnyImages = existingImages.length > 0 || previews.length > 0
+
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-text">Photos</label>
-
-      {/* Existing images */}
-      {existingImages.length > 0 && (
-        <div className="flex flex-wrap gap-3">
+      {hasAnyImages && (
+        <div className="flex flex-wrap gap-2">
           {existingImages.map((img) => (
             <div key={img.id} className="relative group">
               <img
                 src={img.url}
                 alt=""
-                className="w-24 h-24 object-cover rounded-lg border border-border"
+                className="w-20 h-20 object-cover border border-border"
+                style={{ borderRadius: 2 }}
               />
               {onDeleteExisting && (
                 <button
                   type="button"
                   onClick={() => onDeleteExisting(img.id)}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-accent
-                    text-white text-xs flex items-center justify-center
+                  aria-label="Remove photo"
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-aubergine
+                    text-cream text-xs flex items-center justify-center
                     opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
                 >
-                  x
+                  ×
                 </button>
               )}
             </div>
           ))}
-        </div>
-      )}
-
-      {/* New previews */}
-      {previews.length > 0 && (
-        <div className="flex flex-wrap gap-3">
           {previews.map((src, i) => (
             <img
               key={i}
               src={src}
               alt=""
-              className="w-24 h-24 object-cover rounded-lg border border-border opacity-80"
+              className="w-20 h-20 object-cover border border-border opacity-80"
+              style={{ borderRadius: 2 }}
             />
           ))}
         </div>
       )}
 
-      {/* Drop zone */}
       <div
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        className="border-2 border-dashed border-border rounded-xl p-8
-          text-center cursor-pointer hover:border-accent hover:bg-accent-soft/30
-          transition-colors"
         onClick={() => document.getElementById('file-input')?.click()}
+        className={`flex flex-col items-center justify-center gap-2 cursor-pointer
+          border-[2px] border-dashed border-border hover:border-tomato hover:bg-bg-warm/40
+          transition-colors text-center
+          ${hasAnyImages ? 'py-5 px-4' : 'py-10 px-6'}`}
+        style={{ borderRadius: 2 }}
       >
+        {!hasAnyImages && <Tomato size={48} />}
         {processing ? (
-          <p className="text-text-muted text-sm">Resizing images...</p>
+          <p className="font-mono text-sm text-text-muted m-0">resizing...</p>
         ) : (
-          <p className="text-text-muted text-sm">
-            Drop photos here or click to choose
-          </p>
+          <>
+            <p className="font-display italic text-sm text-text-muted m-0">
+              {hasAnyImages ? 'add another photo' : 'drop a photo or click to choose'}
+            </p>
+            <p
+              className="font-mono font-bold text-text-muted/70 m-0"
+              style={{ fontSize: 9, letterSpacing: '0.22em' }}
+            >
+              JPG · PNG · HEIC
+            </p>
+          </>
         )}
         <input
           id="file-input"

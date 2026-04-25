@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../hooks/use-auth'
 import { useCookLog, useAddCookLog, useDeleteCookLog, useCookLogReactions, useToggleReaction } from '../../hooks/use-cook-log'
 import { useSetRecipeStatus } from '../../hooks/use-recipe-status'
-import { PotDoodle, UtensilsMini } from '../illustrations/Doodles'
+import { PastaNest } from '../illustrations/Produce'
 
 const REACTION_EMOJIS = ['\u{1F60B}', '\u{1F525}', '\u{2764}\u{FE0F}', '\u{1F44F}', '\u{1F924}']
 
@@ -53,30 +53,39 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
     setShowForm(false)
   }
 
+  const hasLogs = (logs?.length ?? 0) > 0
+
   return (
     <section className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl m-0">Cook Log</h2>
+      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+        <div className="flex items-baseline gap-3">
+          <h2 className="m-0 font-display italic text-2xl">Cook log</h2>
+          <span
+            className="font-mono font-bold"
+            style={{
+              fontSize: 10,
+              letterSpacing: '0.25em',
+              color: 'var(--color-tomato)',
+            }}
+          >
+            LE COTTURE
+          </span>
+        </div>
+
         <div className="flex gap-2">
           <button
             onClick={handleQuickLog}
             disabled={addLog.isPending}
-            className={`px-4 py-2 rounded-full text-sm font-medium
-              transition-all cursor-pointer
-              ${
-                logs?.length
-                  ? 'bg-teal text-white border-none shadow-sm hover:opacity-90'
-                  : 'bg-transparent text-teal border border-teal/40 hover:bg-teal hover:text-white'
-              }`}
+            className={hasLogs ? 'btn-trat' : 'btn-trat btn-trat-ghost'}
           >
-            I made this!
+            l'ho fatto!
           </button>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 rounded-full text-sm text-text-muted border border-border
-              hover:border-teal/40 transition-colors cursor-pointer bg-transparent"
+            className="font-display italic text-sm cursor-pointer bg-transparent border-none px-2"
+            style={{ color: 'var(--color-basil)' }}
           >
-            + with notes
+            {showForm ? 'cancel' : '+ con note'}
           </button>
         </div>
       </div>
@@ -85,164 +94,224 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="p-4 rounded-xl border border-border bg-bg-card space-y-3"
+          className="bg-bg-card border border-border p-4 sm:p-5 space-y-3"
+          style={{ borderRadius: 2 }}
         >
-          <div className="flex gap-3">
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-text-muted">
-                Date
-              </label>
-              <input
-                type="date"
-                value={cookedOn}
-                onChange={(e) => setCookedOn(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-border bg-bg text-sm
-                  focus:outline-none focus:border-accent"
-              />
+          <div>
+            <div
+              className="font-mono font-bold mb-1.5"
+              style={{
+                fontSize: 9,
+                letterSpacing: '0.22em',
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              DATE · LA DATA
             </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-text-muted">
-              Notes
-            </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={2}
-              placeholder="How did it turn out? Any changes you made?"
-              className="w-full px-3 py-2 rounded-lg border border-border bg-bg text-sm
-                focus:outline-none focus:border-accent resize-y
-                placeholder:text-text-muted/50"
+            <input
+              type="date"
+              value={cookedOn}
+              onChange={(e) => setCookedOn(e.target.value)}
+              className="px-3 py-2 font-mono text-[13px] bg-bg text-text border border-border focus:outline-none focus:border-tomato transition-colors"
+              style={{ borderRadius: 2 }}
             />
           </div>
 
-          <div className="flex gap-2">
+          <div>
+            <div
+              className="font-mono font-bold mb-1.5"
+              style={{
+                fontSize: 9,
+                letterSpacing: '0.22em',
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              NOTES · APPUNTI
+            </div>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={3}
+              placeholder="how did it turn out? any changes you made?"
+              className="w-full px-3 py-2 font-mono text-[13px] bg-bg text-text border border-border placeholder:text-text-muted/50 placeholder:italic focus:outline-none focus:border-tomato transition-colors resize-y"
+              style={{ borderRadius: 2 }}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
             <button
               type="submit"
               disabled={addLog.isPending}
-              className="px-4 py-2 rounded-full bg-teal text-white text-sm font-medium
-                hover:opacity-90 cursor-pointer border-none"
+              className="btn-trat disabled:opacity-50"
             >
-              Log it
+              salva
             </button>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="px-4 py-2 rounded-lg text-sm text-text-muted
-                hover:text-text cursor-pointer bg-transparent border-none"
+              className="font-mono text-[11px] uppercase font-bold text-text-muted hover:text-text cursor-pointer bg-transparent border-none"
+              style={{ letterSpacing: '0.2em' }}
             >
-              Cancel
+              cancel
             </button>
           </div>
         </form>
       )}
 
-      {/* Timeline */}
-      {logs?.length ? (
+      {/* Timeline of cook entries */}
+      {hasLogs ? (
         <div className="space-y-4">
-          {logs.map((log, i) => {
+          {logs!.map((log) => {
             const author = log.profiles
             const isOwn = profile?.id === log.cooked_by
-            const rotation = (i % 3 === 0) ? -2 : (i % 3 === 1) ? 1.5 : -0.5
 
             return (
-              <div
+              <article
                 key={log.id}
-                className="group flex items-start gap-4"
+                className="group bg-bg-card border border-border p-4 sm:p-5 relative"
+                style={{
+                  borderRadius: 2,
+                  boxShadow: '0 2px 0 var(--color-border)',
+                }}
               >
-                <div
-                  className="cook-stamp shrink-0 mt-0.5"
-                  style={{
-                    borderColor: author.accent_colour,
-                    color: author.accent_colour,
-                    transform: `rotate(${rotation}deg)`,
-                  }}
-                >
-                  <UtensilsMini className="w-3.5 h-3.5" />
-                  <span>Cooked</span>
-                </div>
-
-                <div className="flex-1 min-w-0 pt-1">
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <span
-                      className="text-sm font-medium"
-                      style={{ color: author.accent_colour }}
+                <div className="flex items-start gap-3">
+                  {author.avatar_url ? (
+                    <img
+                      src={author.avatar_url}
+                      alt=""
+                      className="w-9 h-9 rounded-full shrink-0"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-cream font-display italic font-semibold text-base"
+                      style={{ backgroundColor: author.accent_colour }}
                     >
-                      {author.display_name}
-                    </span>
-                    <span className="text-xs text-text-muted">
-                      {new Date(log.cooked_on + 'T00:00:00').toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </span>
-                    {isOwn && (
-                      <button
-                        onClick={() =>
-                          deleteLog.mutate({ logId: log.id, recipeId })
-                        }
-                        className="text-xs text-text-muted/30 hover:text-accent
-                          transition-colors opacity-0 group-hover:opacity-100
-                          bg-transparent border-none cursor-pointer"
-                      >
-                        delete
-                      </button>
-                    )}
-                  </div>
-                  {log.note && (
-                    <p className="text-sm text-text-muted leading-relaxed m-0 mt-1.5 italic">
-                      "{log.note}"
-                    </p>
+                      {author.display_name.charAt(0).toUpperCase()}
+                    </div>
                   )}
 
-                  {/* Reactions */}
-                  <div className="flex items-center gap-1 mt-2 flex-wrap">
-                    {REACTION_EMOJIS.map((emoji) => {
-                      const logReactions = reactions?.filter(
-                        (r) => r.cook_log_id === log.id && r.emoji === emoji,
-                      ) || []
-                      const count = logReactions.length
-                      const hasReacted = logReactions.some((r) => r.user_id === profile?.id)
-
-                      return (
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2.5 flex-wrap">
+                      <span
+                        className="font-display italic text-[16px]"
+                        style={{ color: author.accent_colour }}
+                      >
+                        {author.display_name}
+                      </span>
+                      <span
+                        className="font-mono font-bold uppercase"
+                        style={{
+                          fontSize: 10,
+                          letterSpacing: '0.18em',
+                          color: 'var(--color-text-muted)',
+                        }}
+                      >
+                        cooked{' '}
+                        {new Date(log.cooked_on + 'T00:00:00').toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
+                      {isOwn && (
                         <button
-                          key={emoji}
-                          onClick={() => {
-                            if (!profile) return
-                            toggleReaction.mutate({
-                              logId: log.id,
-                              userId: profile.id,
-                              emoji,
-                              recipeId,
-                            })
-                          }}
-                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs
-                            cursor-pointer border transition-all
-                            ${
-                              hasReacted
-                                ? 'bg-accent-soft border-accent/30'
-                                : count > 0
-                                  ? 'bg-bg-card border-border/60'
-                                  : 'bg-transparent border-transparent opacity-0 group-hover:opacity-50 hover:!opacity-100'
-                            }`}
+                          onClick={() =>
+                            deleteLog.mutate({ logId: log.id, recipeId })
+                          }
+                          className="ml-auto font-mono text-[10px] uppercase text-text-muted/40 hover:text-aubergine transition-colors opacity-0 group-hover:opacity-100 bg-transparent border-none cursor-pointer"
+                          style={{ letterSpacing: '0.18em' }}
                         >
-                          <span>{emoji}</span>
-                          {count > 0 && <span className="text-[10px] text-text-muted">{count}</span>}
+                          delete
                         </button>
-                      )
-                    })}
+                      )}
+                    </div>
+
+                    {log.note && (
+                      <p className="font-display italic text-[15.5px] text-text leading-[1.5] m-0 mt-2">
+                        “{log.note}”
+                      </p>
+                    )}
+
+                    {/* Reactions */}
+                    <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+                      {REACTION_EMOJIS.map((emoji) => {
+                        const logReactions =
+                          reactions?.filter(
+                            (r) => r.cook_log_id === log.id && r.emoji === emoji,
+                          ) || []
+                        const count = logReactions.length
+                        const hasReacted = logReactions.some(
+                          (r) => r.user_id === profile?.id,
+                        )
+
+                        return (
+                          <button
+                            key={emoji}
+                            onClick={() => {
+                              if (!profile) return
+                              toggleReaction.mutate({
+                                logId: log.id,
+                                userId: profile.id,
+                                emoji,
+                                recipeId,
+                              })
+                            }}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 cursor-pointer transition-all border-[1.5px]
+                              ${
+                                hasReacted
+                                  ? ''
+                                  : count > 0
+                                    ? ''
+                                    : 'opacity-0 group-hover:opacity-60 hover:!opacity-100'
+                              }`}
+                            style={{
+                              borderRadius: 999,
+                              background: hasReacted
+                                ? 'var(--color-tomato-soft)'
+                                : count > 0
+                                  ? 'transparent'
+                                  : 'transparent',
+                              borderColor: hasReacted
+                                ? 'var(--color-tomato)'
+                                : count > 0
+                                  ? 'var(--color-border)'
+                                  : 'var(--color-border)',
+                            }}
+                          >
+                            <span style={{ fontSize: 13 }}>{emoji}</span>
+                            {count > 0 && (
+                              <span
+                                className="font-mono font-bold"
+                                style={{
+                                  fontSize: 10,
+                                  color: hasReacted
+                                    ? 'var(--color-tomato)'
+                                    : 'var(--color-text-muted)',
+                                }}
+                              >
+                                {count}
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </article>
             )
           })}
         </div>
       ) : (
-        <div className="text-center py-4">
-          <PotDoodle className="w-20 h-auto mx-auto text-text-muted/30 mb-2" />
-          <p className="text-sm text-text-muted">No one's made this yet. Be the first!</p>
+        <div className="text-center py-8 space-y-3">
+          <PastaNest size={64} className="mx-auto opacity-60" />
+          <p className="font-display italic text-base text-text m-0">
+            Nessuno l'ha ancora fatto.
+          </p>
+          <p className="font-mono text-xs text-text-muted m-0">
+            no one's made this yet — be the first!
+          </p>
         </div>
       )}
     </section>

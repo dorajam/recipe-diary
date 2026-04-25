@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../hooks/use-auth'
 import { useCookLog, useAddCookLog, useDeleteCookLog, useCookLogReactions, useToggleReaction } from '../../hooks/use-cook-log'
 import { useSetRecipeStatus } from '../../hooks/use-recipe-status'
-import { PastaNest } from '../illustrations/Produce'
+import { RollingPin } from '../illustrations/Produce'
 import { personColor } from '../../lib/person-color'
 
 const REACTION_EMOJIS = ['\u{1F60B}', '\u{1F525}', '\u{2764}\u{FE0F}', '\u{1F44F}', '\u{1F924}']
@@ -323,7 +323,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
         </div>
       ) : (
         <div className="text-center py-8 space-y-3">
-          <PastaNest size={64} className="mx-auto opacity-60" />
+          <RollingPin size={80} className="mx-auto opacity-70" />
           <p className="font-display italic text-base text-text m-0">
             Nessuno l'ha ancora fatto.
           </p>

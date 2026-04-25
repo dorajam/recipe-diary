@@ -1,24 +1,48 @@
 import { useAuth } from '../../hooks/use-auth'
+import { Tomato } from '../illustrations/Produce'
 
 export function LoginPage() {
   const { signInWithGoogle } = useAuth()
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
-      <div className="max-w-sm w-full text-center space-y-8">
+      <div className="max-w-md w-full text-center space-y-8">
         <div className="space-y-3">
-          <h1 className="text-4xl tracking-tight">What's Cooking</h1>
-          <p className="text-text-muted text-lg">
+          <div
+            className="font-mono font-bold"
+            style={{
+              fontSize: 10,
+              letterSpacing: '0.32em',
+              color: 'var(--color-tomato)',
+            }}
+          >
+            EST. 2011 · HOME COOKING
+          </div>
+
+          <h1
+            className="m-0 font-display italic font-medium leading-[0.95] tracking-tight text-text"
+            style={{ fontSize: 'clamp(1.8rem, 5vw, 2.6rem)' }}
+          >
+            La{' '}
+            <span style={{ color: 'var(--color-tomato)' }}>Cucina</span>
+            {' '}di{' '}
+            <span style={{ color: 'var(--color-basil)' }}>
+              Feeny &amp; Beeny
+            </span>
+          </h1>
+
+          <p className="font-display italic text-text-muted text-lg m-0 mt-4">
             A shared place for the things we cook, discover, and make.
           </p>
         </div>
 
+        <div className="flex justify-center">
+          <Tomato size={56} />
+        </div>
+
         <button
           onClick={signInWithGoogle}
-          className="inline-flex items-center gap-3 px-6 py-3 rounded-xl
-            bg-bg-card border border-border shadow-sm
-            hover:shadow-md hover:border-accent transition-all duration-200
-            text-text font-medium cursor-pointer"
+          className="btn-trat btn-trat-ghost inline-flex items-center gap-3 mx-auto"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -38,11 +62,14 @@ export function LoginPage() {
               fill="#EA4335"
             />
           </svg>
-          Sign in with Google
+          <span className="font-display italic">accedi con google</span>
         </button>
 
-        <p className="text-sm text-text-muted">
-          This is a private diary for two.
+        <p
+          className="font-mono font-bold text-text-muted m-0"
+          style={{ fontSize: 10, letterSpacing: '0.22em' }}
+        >
+          A PRIVATE DIARY FOR TWO
         </p>
       </div>
     </div>

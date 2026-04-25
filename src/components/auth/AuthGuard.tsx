@@ -9,8 +9,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-text-muted animate-pulse font-display text-xl">
-          What's Cooking
+        <div className="text-text-muted animate-pulse font-display italic text-2xl">
+          La Cucina di Feeny &amp; Beeny
         </div>
       </div>
     )

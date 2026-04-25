@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import type { RecipeWithProfile, RecipeImage, RecipeStatus } from '../../lib/types'
 import { categoryLabel } from '../../lib/categories'
 import { Tomato, Basil, Lemon, Pepper } from '../illustrations/Produce'
+import { personColor } from '../../lib/person-color'
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 
@@ -153,7 +154,7 @@ export function RecipeCard({ recipe, image, status }: RecipeCardProps) {
             ) : (
               <div
                 className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-cream font-display italic font-semibold text-[13px]"
-                style={{ backgroundColor: profile.accent_colour }}
+                style={{ backgroundColor: personColor(profile) }}
               >
                 {profile.display_name.charAt(0).toUpperCase()}
               </div>

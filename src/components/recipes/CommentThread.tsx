@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../hooks/use-auth'
 import { useComments, useAddComment, useDeleteComment } from '../../hooks/use-comments'
 import { Espresso } from '../illustrations/Produce'
+import { personColor } from '../../lib/person-color'
 
 interface CommentThreadProps {
   recipeId: string
@@ -29,7 +30,7 @@ export function CommentThread({ recipeId }: CommentThreadProps) {
   const hasComments = (comments?.length ?? 0) > 0
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-6">
       <div className="flex items-baseline gap-3">
         <h2 className="m-0 font-display italic text-2xl">Notes</h2>
         <span
@@ -44,80 +45,77 @@ export function CommentThread({ recipeId }: CommentThreadProps) {
         </span>
       </div>
 
-      {/* Comment cards */}
+      {/* Diary-style comment entries */}
       {hasComments ? (
-        <div className="space-y-3">
-          {comments!.map((comment) => {
+        <div>
+          {comments!.map((comment, i) => {
             const author = comment.profiles
             const isOwn = profile?.id === comment.author_id
+            const isLast = i === comments!.length - 1
+            const date = new Date(comment.created_at)
 
             return (
-              <article
-                key={comment.id}
-                className="group bg-bg-card border border-border p-4 relative"
-                style={{
-                  borderRadius: 2,
-                  boxShadow: '0 2px 0 var(--color-border)',
-                }}
-              >
-                <div className="flex gap-3">
-                  {author.avatar_url ? (
-                    <img
-                      src={author.avatar_url}
-                      alt=""
-                      className="w-8 h-8 rounded-full shrink-0 mt-0.5"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div
-                      className="w-8 h-8 rounded-full shrink-0 mt-0.5 flex items-center justify-center text-cream font-display italic font-semibold text-sm"
-                      style={{ backgroundColor: author.accent_colour }}
-                    >
-                      {author.display_name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+              <article key={comment.id} className="group py-4 sm:py-5">
+                <p
+                  className="font-display italic text-text leading-[1.55] m-0 mb-2.5 whitespace-pre-wrap"
+                  style={{ fontSize: 'clamp(1rem, 1.6vw, 1.15rem)' }}
+                >
+                  “{comment.body}”
+                </p>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2.5 flex-wrap">
-                      <span
-                        className="font-display italic text-[15px]"
-                        style={{ color: author.accent_colour }}
-                      >
-                        {author.display_name}
-                      </span>
-                      <span
-                        className="font-mono font-bold uppercase"
-                        style={{
-                          fontSize: 9.5,
-                          letterSpacing: '0.18em',
-                          color: 'var(--color-text-muted)',
-                        }}
-                      >
-                        {new Date(comment.created_at).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
-                      </span>
-                      {isOwn && (
-                        <button
-                          onClick={() =>
-                            deleteComment.mutate({
-                              commentId: comment.id,
-                              recipeId,
-                            })
-                          }
-                          className="ml-auto font-mono text-[10px] uppercase text-text-muted/40 hover:text-aubergine transition-colors opacity-0 group-hover:opacity-100 bg-transparent border-none cursor-pointer"
-                          style={{ letterSpacing: '0.18em' }}
-                        >
-                          delete
-                        </button>
-                      )}
-                    </div>
-                    <p className="font-mono text-[13.5px] text-text leading-[1.6] m-0 mt-1.5 whitespace-pre-wrap">
-                      {comment.body}
-                    </p>
-                  </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className="font-mono font-bold uppercase"
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: '0.22em',
+                      color: personColor(author),
+                    }}
+                  >
+                    — {author.display_name}
+                  </span>
+                  <span
+                    className="font-mono font-bold uppercase"
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: '0.22em',
+                      color: 'var(--color-text-muted)',
+                    }}
+                  >
+                    ·{' '}
+                    {date.toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
+
+                  {isOwn && (
+                    <button
+                      onClick={() =>
+                        deleteComment.mutate({
+                          commentId: comment.id,
+                          recipeId,
+                        })
+                      }
+                      className="ml-auto font-mono text-[10px] uppercase text-text-muted/40 hover:text-aubergine transition-colors opacity-0 group-hover:opacity-100 bg-transparent border-none cursor-pointer"
+                      style={{ letterSpacing: '0.18em' }}
+                    >
+                      delete
+                    </button>
+                  )}
                 </div>
+
+                {!isLast && (
+                  <div
+                    className="mt-5 sm:mt-6"
+                    style={{
+                      height: 1,
+                      background: 'var(--color-basil)',
+                      opacity: 0.2,
+                    }}
+                  />
+                )}
               </article>
             )
           })}
@@ -137,7 +135,7 @@ export function CommentThread({ recipeId }: CommentThreadProps) {
       {/* New comment form */}
       <form
         onSubmit={handleSubmit}
-        className="bg-bg-card border border-border p-4 space-y-3"
+        className="bg-bg-card border border-border p-4 space-y-3 mt-2"
         style={{ borderRadius: 2 }}
       >
         <textarea

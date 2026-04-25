@@ -32,7 +32,7 @@
   --color-basil-soft: #E8EFD3;
   --color-lemon-soft: #FFF4C2;
 
-  /* Person colors — defaults; profile.accent_colour from DB still wins on avatars */
+  /* Person colors — see lib/person-color.ts for the email-keyed override */
   --color-person-a: #FF2D1A;
   --color-person-b: #7DAD2E;
 

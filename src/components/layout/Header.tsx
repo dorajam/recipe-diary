@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/use-auth'
 import { useRecipes } from '../../hooks/use-recipes'
+import { personColor } from '../../lib/person-color'
 
 export function Header() {
   const { profile, signOut } = useAuth()
@@ -107,7 +108,7 @@ export function Header() {
                   <div
                     className="w-9 h-9 rounded-full flex items-center justify-center text-cream font-display italic font-semibold
                       hover:ring-2 hover:ring-tomato/40 transition-all"
-                    style={{ backgroundColor: profile.accent_colour }}
+                    style={{ backgroundColor: personColor(profile) }}
                   >
                     {profile.display_name.charAt(0).toUpperCase()}
                   </div>

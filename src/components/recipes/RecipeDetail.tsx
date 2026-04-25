@@ -10,6 +10,7 @@ import { RecipeStatusToggle } from './RecipeStatusToggle'
 import { CookLogSection } from './CookLogSection'
 import { CommentThread } from './CommentThread'
 import { Tomato, PastaNest } from '../illustrations/Produce'
+import { personColor } from '../../lib/person-color'
 
 export function RecipeDetail() {
   const { id } = useParams()
@@ -207,14 +208,14 @@ export function RecipeDetail() {
           ) : (
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center text-cream font-display italic font-semibold text-sm"
-              style={{ backgroundColor: author.accent_colour }}
+              style={{ backgroundColor: personColor(author) }}
             >
               {author.display_name.charAt(0).toUpperCase()}
             </div>
           )}
           <span
             className="font-display italic text-[16px]"
-            style={{ color: author.accent_colour }}
+            style={{ color: personColor(author) }}
           >
             {author.display_name}
           </span>

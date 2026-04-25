@@ -3,11 +3,16 @@ import { useAuth } from '../../hooks/use-auth'
 import { useCookLog, useAddCookLog, useDeleteCookLog, useCookLogReactions, useToggleReaction } from '../../hooks/use-cook-log'
 import { useSetRecipeStatus } from '../../hooks/use-recipe-status'
 import { PastaNest } from '../illustrations/Produce'
+import { personColor } from '../../lib/person-color'
 
 const REACTION_EMOJIS = ['\u{1F60B}', '\u{1F525}', '\u{2764}\u{FE0F}', '\u{1F44F}', '\u{1F924}']
 
 interface CookLogSectionProps {
   recipeId: string
+}
+
+function parseLocalDate(dateStr: string) {
+  return new Date(dateStr + 'T00:00:00')
 }
 
 export function CookLogSection({ recipeId }: CookLogSectionProps) {
@@ -56,7 +61,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
   const hasLogs = (logs?.length ?? 0) > 0
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-6">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <div className="flex items-baseline gap-3">
           <h2 className="m-0 font-display italic text-2xl">Cook log</h2>
@@ -158,62 +163,76 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
         </form>
       )}
 
-      {/* Timeline of cook entries */}
+      {/* Diary entries — date stamp left, body right, hairline divider */}
       {hasLogs ? (
-        <div className="space-y-4">
-          {logs!.map((log) => {
+        <div>
+          {logs!.map((log, i) => {
             const author = log.profiles
             const isOwn = profile?.id === log.cooked_by
+            const date = parseLocalDate(log.cooked_on)
+            const isLast = i === logs!.length - 1
 
             return (
-              <article
-                key={log.id}
-                className="group bg-bg-card border border-border p-4 sm:p-5 relative"
-                style={{
-                  borderRadius: 2,
-                  boxShadow: '0 2px 0 var(--color-border)',
-                }}
-              >
-                <div className="flex items-start gap-3">
-                  {author.avatar_url ? (
-                    <img
-                      src={author.avatar_url}
-                      alt=""
-                      className="w-9 h-9 rounded-full shrink-0"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
+              <article key={log.id} className="group">
+                <div className="grid grid-cols-[44px_1fr] sm:grid-cols-[56px_1fr] gap-4 sm:gap-5 py-5">
+                  {/* Date stamp */}
+                  <div className="text-right pt-1">
                     <div
-                      className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-cream font-display italic font-semibold text-base"
-                      style={{ backgroundColor: author.accent_colour }}
+                      className="font-display italic font-medium leading-[0.9]"
+                      style={{
+                        fontSize: 32,
+                        color: 'var(--color-tomato)',
+                      }}
                     >
-                      {author.display_name.charAt(0).toUpperCase()}
+                      {date.getDate()}
                     </div>
-                  )}
+                    <div
+                      className="font-display italic mt-0.5 lowercase leading-none"
+                      style={{ fontSize: 13, color: 'var(--color-text-muted)' }}
+                    >
+                      {date.toLocaleDateString('en-GB', { month: 'short' }).toLowerCase()}{' '}
+                      {date.getFullYear()}
+                    </div>
+                  </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2.5 flex-wrap">
-                      <span
-                        className="font-display italic text-[16px]"
-                        style={{ color: author.accent_colour }}
+                  {/* Body */}
+                  <div className="min-w-0">
+                    {log.note ? (
+                      <p
+                        className="font-display italic text-text leading-[1.5] m-0 mb-3"
+                        style={{ fontSize: 'clamp(1rem, 1.6vw, 1.15rem)' }}
                       >
-                        {author.display_name}
+                        “{log.note}”
+                      </p>
+                    ) : (
+                      <p className="font-display italic text-text-muted/70 leading-[1.5] m-0 mb-3">
+                        cooked, no notes
+                      </p>
+                    )}
+
+                    {/* Byline */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className="font-mono font-bold uppercase"
+                        style={{
+                          fontSize: 10,
+                          letterSpacing: '0.22em',
+                          color: personColor(author),
+                        }}
+                      >
+                        — {author.display_name}
                       </span>
                       <span
                         className="font-mono font-bold uppercase"
                         style={{
                           fontSize: 10,
-                          letterSpacing: '0.18em',
+                          letterSpacing: '0.22em',
                           color: 'var(--color-text-muted)',
                         }}
                       >
-                        cooked{' '}
-                        {new Date(log.cooked_on + 'T00:00:00').toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                        · cooked
                       </span>
+
                       {isOwn && (
                         <button
                           onClick={() =>
@@ -226,12 +245,6 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
                         </button>
                       )}
                     </div>
-
-                    {log.note && (
-                      <p className="font-display italic text-[15.5px] text-text leading-[1.5] m-0 mt-2">
-                        “{log.note}”
-                      </p>
-                    )}
 
                     {/* Reactions */}
                     <div className="flex items-center gap-1.5 mt-3 flex-wrap">
@@ -267,16 +280,10 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
                               }`}
                             style={{
                               borderRadius: 999,
-                              background: hasReacted
-                                ? 'var(--color-tomato-soft)'
-                                : count > 0
-                                  ? 'transparent'
-                                  : 'transparent',
+                              background: hasReacted ? 'var(--color-tomato-soft)' : 'transparent',
                               borderColor: hasReacted
                                 ? 'var(--color-tomato)'
-                                : count > 0
-                                  ? 'var(--color-border)'
-                                  : 'var(--color-border)',
+                                : 'var(--color-border)',
                             }}
                           >
                             <span style={{ fontSize: 13 }}>{emoji}</span>
@@ -299,6 +306,17 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
                     </div>
                   </div>
                 </div>
+
+                {/* Hairline divider — tomato, skipped after the last entry */}
+                {!isLast && (
+                  <div
+                    style={{
+                      height: 1,
+                      background: 'var(--color-tomato)',
+                      opacity: 0.18,
+                    }}
+                  />
+                )}
               </article>
             )
           })}

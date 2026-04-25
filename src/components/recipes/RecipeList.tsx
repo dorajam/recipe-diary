@@ -328,7 +328,7 @@ export function RecipeList() {
 
       {/* Recipe grid */}
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7 items-start">
           {filtered.map((recipe) => (
             <RecipeCard
               key={recipe.id}

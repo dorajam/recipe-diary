@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import type { RecipeWithProfile, RecipeImage, RecipeStatus } from '../../lib/types'
 import { categoryLabel } from '../../lib/categories'
 import { Tomato, Basil, Lemon, Pepper } from '../illustrations/Produce'
+import { personColor, nicknameFor } from '../../lib/person-color'
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 
@@ -34,6 +35,7 @@ function pickGradient(id: string) {
 }
 
 export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCardProps) {
+  const profile = recipe.profiles
   const isNew = Date.now() - new Date(recipe.created_at).getTime() < ONE_DAY
   const Doodle = pickDoodle(recipe.id)
   const gradient = pickGradient(recipe.id)
@@ -135,17 +137,21 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
         </div>
 
         {/* Card body */}
-        <div className="px-4 py-3.5">
-          <div className="flex items-start gap-3 min-h-[2.25rem]">
-            {recipe.description ? (
-              <p className="font-mono text-[12px] text-text-muted leading-[1.5] m-0 line-clamp-2 flex-1">
-                {recipe.description}
-              </p>
-            ) : (
-              <span className="flex-1" />
-            )}
+        <div className="px-4 py-3.5 space-y-2.5">
+          {recipe.description && (
+            <p className="font-mono text-[12px] text-text-muted leading-[1.5] m-0 line-clamp-2">
+              {recipe.description}
+            </p>
+          )}
 
-            {/* Status stamp */}
+          <div className="flex items-center justify-between gap-3">
+            <span
+              className="font-display italic text-[13px] leading-none"
+              style={{ color: personColor(profile) }}
+            >
+              by {nicknameFor(profile)}
+            </span>
+
             {status === 'made_it' || cookedCount > 0 ? (
               <span className="stamp shrink-0">
                 cooked

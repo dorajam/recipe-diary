@@ -4,24 +4,43 @@ import { useRecipeFirstImages } from '../../hooks/use-recipe-first-images'
 import { useAllRecipeStatuses } from '../../hooks/use-recipe-status'
 import { useAuth } from '../../hooks/use-auth'
 import { RecipeCard } from './RecipeCard'
-import { CookbookDoodle, PotDoodle } from '../illustrations/Doodles'
+import { Tomato, Basil, Lemon, Pepper, Garlic, Wine, PastaNest } from '../illustrations/Produce'
 import { CATEGORIES } from '../../lib/categories'
 import type { RecipeCategory, RecipeStatus, RecipeWithProfile } from '../../lib/types'
 
-const CARD_ROTATIONS = ['-0.8deg', '0.6deg', '-0.4deg', '1deg', '-0.6deg', '0.8deg']
-
 type StatusFilter = 'all' | RecipeStatus
 
-const STATUS_FILTERS: { value: RecipeStatus; label: string }[] = [
-  { value: 'want_to_try', label: 'Want to try' },
-  { value: 'made_it', label: 'Made it' },
+interface FilterChip {
+  value: StatusFilter
+  it: string
+  en: string
+}
+
+const STATUS_CHIPS: FilterChip[] = [
+  { value: 'all',         it: 'Tutto',     en: 'EVERYTHING' },
+  { value: 'want_to_try', it: 'Da provare', en: 'WANT TO TRY' },
+  { value: 'made_it',     it: 'Fatto',      en: 'MADE IT' },
 ]
+
+const CATEGORY_IT: Record<RecipeCategory, string> = {
+  breakfast: 'Colazione',
+  starter:   'Antipasto',
+  main:      'Primo',
+  side:      'Contorno',
+  soup_stew: 'Zuppa',
+  salad:     'Insalata',
+  dessert:   'Dolce',
+  baking:    'Da forno',
+  snack:     'Spuntino',
+  drink:     'Da bere',
+  sauce_dip: 'Salsa',
+}
 
 function getGreeting(): string {
   const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
+  if (hour < 12) return 'Buongiorno'
+  if (hour < 17) return 'Buon pomeriggio'
+  return 'Buonasera'
 }
 
 const NICKNAMES: Record<string, string> = {
@@ -49,7 +68,7 @@ export function RecipeList() {
   const { data: statuses } = useAllRecipeStatuses(user?.id)
 
   const [search, setSearch] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [showCategories, setShowCategories] = useState(false)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [categoryFilter, setCategoryFilter] = useState<RecipeCategory | 'all'>('all')
 
@@ -74,9 +93,9 @@ export function RecipeList() {
 
   if (isLoading) {
     return (
-      <div className="text-center py-20 text-text-muted">
-        <PotDoodle className="w-16 h-auto mx-auto text-text-muted/20 mb-4 animate-pulse" />
-        Loading recipes...
+      <div className="text-center py-24 text-text-muted">
+        <PastaNest size={64} className="mx-auto mb-4 opacity-50 animate-pulse" />
+        <p className="font-mono text-sm">caricamento...</p>
       </div>
     )
   }
@@ -84,7 +103,7 @@ export function RecipeList() {
   if (error) {
     console.error('Recipe list error:', error)
     return (
-      <div className="text-center py-20 text-accent">
+      <div className="text-center py-20 text-tomato font-mono text-sm">
         Something went wrong loading recipes.
       </div>
     )
@@ -92,204 +111,258 @@ export function RecipeList() {
 
   if (!recipes?.length) {
     return (
-      <div className="text-center py-20 space-y-4">
-        <CookbookDoodle className="w-28 h-auto mx-auto text-text-muted/40" />
-        <p className="text-text-muted text-lg font-display">No recipes yet!</p>
-        <p className="text-text-muted text-sm">
-          Add your first recipe to get started.
+      <div className="text-center py-24 space-y-5">
+        <Tomato size={96} className="mx-auto" />
+        <p className="font-display italic text-3xl text-text m-0">
+          La cucina è vuota.
+        </p>
+        <p className="font-mono text-sm text-text-muted m-0">
+          The kitchen is empty — add your first recipe to get cooking.
         </p>
       </div>
     )
   }
 
-  const hasActiveFilters = statusFilter !== 'all' || categoryFilter !== 'all'
-  const filterCount = (statusFilter !== 'all' ? 1 : 0) + (categoryFilter !== 'all' ? 1 : 0)
+  const hasActiveCategoryFilter = categoryFilter !== 'all'
 
-  // Find the other person's recent additions
+  // Friend activity note
   const friendRecipes = recipes.filter((r) => r.added_by !== user?.id)
   const friendProfile = friendRecipes[0]?.profiles
   const friendRecentCount = friendRecipes.filter((r) => {
     const age = Date.now() - new Date(r.created_at).getTime()
-    return age < 7 * 24 * 60 * 60 * 1000 // last 7 days
+    return age < 7 * 24 * 60 * 60 * 1000
   }).length
 
-  // All unique contributors
-  const contributors = recipes.reduce<Record<string, typeof recipes[0]['profiles']>>((acc, r) => {
-    acc[r.added_by] = r.profiles
-    return acc
-  }, {})
-  const contributorList = Object.values(contributors)
-
   return (
-    <div className="space-y-8">
-      {/* Greeting */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl m-0 tracking-tight">
-            {getGreeting()}{profile ? `, ${getNickname(profile.email, profile.display_name)}` : ''}
-          </h2>
-
-          {/* Both avatars */}
-          {contributorList.length > 1 && (
-            <div className="flex -space-x-2">
-              {contributorList.map((p) => (
-                p.avatar_url ? (
-                  <img
-                    key={p.id}
-                    src={p.avatar_url}
-                    alt={p.display_name}
-                    className="w-8 h-8 rounded-full border-2 border-bg"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div
-                    key={p.id}
-                    className="w-8 h-8 rounded-full border-2 border-bg flex items-center justify-center text-white text-xs font-medium"
-                    style={{ backgroundColor: p.accent_colour }}
-                  >
-                    {p.display_name.charAt(0).toUpperCase()}
-                  </div>
-                )
-              ))}
-            </div>
-          )}
-        </div>
-
+    <div className="space-y-7">
+      {/* Greeting line */}
+      <div className="flex items-baseline justify-between gap-4 flex-wrap">
+        <h2 className="m-0 text-2xl sm:text-3xl tracking-tight">
+          {getGreeting()}
+          {profile ? `, ${getNickname(profile.email, profile.display_name)}` : ''}
+        </h2>
         {friendProfile && friendRecentCount > 0 && (
-          <p className="text-sm text-text-muted/70 m-0">
-            {getNickname(friendProfile.email, friendProfile.display_name)} added {friendRecentCount}{' '}
-            {friendRecentCount === 1 ? 'recipe' : 'recipes'} this week
+          <p className="m-0 font-script text-lg text-tomato/80">
+            {getNickname(friendProfile.email, friendProfile.display_name)} added{' '}
+            {friendRecentCount} {friendRecentCount === 1 ? 'recipe' : 'recipes'} this
+            week ✨
           </p>
         )}
       </div>
 
-      {/* Search */}
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <svg
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted/50"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" strokeLinecap="round" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search recipes..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl
-                bg-bg-card border border-border/60
-                text-sm text-text placeholder:text-text-muted/40
-                focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40
-                transition-all"
-            />
-            {search && (
+      {/* Filter rail — italian eyebrow chips */}
+      <div className="border-b border-border">
+        <div className="flex items-stretch flex-wrap">
+          {STATUS_CHIPS.map((chip) => {
+            const active = statusFilter === chip.value
+            return (
               <button
-                onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2
-                  text-text-muted/50 hover:text-text-muted transition-colors
-                  text-lg leading-none cursor-pointer"
+                key={chip.value}
+                onClick={() => setStatusFilter(chip.value)}
+                className="text-left py-2.5 px-4 sm:px-5 border-r border-border cursor-pointer transition-colors hover:bg-bg-card/60"
+                style={{
+                  background: active ? 'var(--color-bg-card)' : 'transparent',
+                  borderTop: active
+                    ? '3px solid var(--color-tomato)'
+                    : '3px solid transparent',
+                  marginBottom: -1,
+                }}
               >
-                &times;
+                <div
+                  className="font-display italic leading-none"
+                  style={{
+                    fontSize: 16,
+                    color: active ? 'var(--color-text)' : 'var(--color-text-muted)',
+                    fontWeight: active ? 600 : 500,
+                  }}
+                >
+                  {chip.it}
+                </div>
+                <div
+                  className="font-mono mt-1 font-bold"
+                  style={{
+                    fontSize: 9,
+                    letterSpacing: '0.18em',
+                    color: active ? 'var(--color-tomato)' : 'var(--color-text-muted)',
+                    opacity: 0.85,
+                  }}
+                >
+                  {chip.en}
+                </div>
               </button>
-            )}
-          </div>
+            )
+          })}
 
           <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`px-3.5 py-2.5 rounded-xl text-sm transition-all cursor-pointer
-              border shrink-0 flex items-center gap-1.5
-              ${
-                hasActiveFilters
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-bg-card text-text-muted border-border/60 hover:border-accent/30'
-              }`}
+            onClick={() => setShowCategories(!showCategories)}
+            className="py-2.5 px-4 sm:px-5 cursor-pointer text-left border-r border-border hover:bg-bg-card/60 transition-colors"
+            style={{
+              background: showCategories ? 'var(--color-bg-card)' : 'transparent',
+              borderTop: showCategories
+                ? '3px solid var(--color-basil)'
+                : '3px solid transparent',
+              marginBottom: -1,
+            }}
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path d="M3 4h18M6 8h12M9 12h6M11 16h2" strokeLinecap="round" />
-            </svg>
-            {filterCount > 0 && <span className="text-xs">{filterCount}</span>}
+            <div
+              className="font-display italic leading-none"
+              style={{
+                fontSize: 16,
+                color: showCategories ? 'var(--color-text)' : 'var(--color-text-muted)',
+                fontWeight: showCategories ? 600 : 500,
+              }}
+            >
+              Categorie
+            </div>
+            <div
+              className="font-mono mt-1 font-bold"
+              style={{
+                fontSize: 9,
+                letterSpacing: '0.18em',
+                color: showCategories ? 'var(--color-basil)' : 'var(--color-text-muted)',
+                opacity: 0.85,
+              }}
+            >
+              {hasActiveCategoryFilter ? '· ACTIVE ·' : 'CATEGORIES'}
+            </div>
           </button>
         </div>
+      </div>
 
-        {/* Collapsible filters */}
-        {showFilters && (
-          <div className="space-y-3 p-4 rounded-xl bg-bg-card border border-border/60">
-            <div className="flex flex-wrap gap-2">
-              {STATUS_FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setStatusFilter(statusFilter === f.value ? 'all' : f.value)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer
-                    ${
-                      statusFilter === f.value
-                        ? 'bg-accent text-white shadow-sm'
-                        : 'bg-bg text-text-muted border border-border/60 hover:border-accent/30 hover:text-text'
-                    }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
+      {/* Search */}
+      <div className="flex gap-2.5 items-center">
+        <div className="relative flex-1">
+          <svg
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted/60"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" strokeLinecap="round" />
+          </svg>
+          <input
+            type="text"
+            placeholder="cerca ricette..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 font-mono text-sm
+              bg-bg-card border border-border text-text
+              placeholder:text-text-muted/50 placeholder:italic
+              focus:outline-none focus:border-tomato transition-colors"
+            style={{ borderRadius: 2 }}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted/60 hover:text-tomato cursor-pointer text-lg leading-none"
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
 
-            <div className="flex flex-wrap gap-1.5">
-              {CATEGORIES.map((c) => (
+      {/* Categories panel (collapsible) */}
+      {showCategories && (
+        <div
+          className="bg-bg-card border border-border p-4 sm:p-5 space-y-3"
+          style={{ borderRadius: 2 }}
+        >
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className="px-3 py-1.5 text-xs font-mono uppercase font-bold cursor-pointer transition-colors"
+              style={{
+                background: categoryFilter === 'all' ? 'var(--color-text)' : 'transparent',
+                color: categoryFilter === 'all' ? 'var(--color-cream)' : 'var(--color-text-muted)',
+                border: '1.5px solid var(--color-border)',
+                letterSpacing: '0.18em',
+                borderRadius: 2,
+              }}
+            >
+              Tutto
+            </button>
+            {CATEGORIES.map((c) => {
+              const active = categoryFilter === c.value
+              return (
                 <button
                   key={c.value}
-                  onClick={() => setCategoryFilter(categoryFilter === c.value ? 'all' : c.value)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer
-                    ${
-                      categoryFilter === c.value
-                        ? 'bg-sunny text-white shadow-sm'
-                        : 'bg-bg text-text-muted border border-border/60 hover:border-sunny/30 hover:text-text'
-                    }`}
+                  onClick={() => setCategoryFilter(active ? 'all' : c.value)}
+                  className="px-3 py-1.5 cursor-pointer transition-colors"
+                  style={{
+                    background: active ? 'var(--color-basil)' : 'transparent',
+                    color: active ? 'var(--color-cream)' : 'var(--color-text)',
+                    border: `1.5px solid ${active ? 'var(--color-basil)' : 'var(--color-border)'}`,
+                    borderRadius: 2,
+                  }}
                 >
-                  {c.label}
+                  <span className="font-display italic text-sm leading-none mr-1.5">
+                    {CATEGORY_IT[c.value]}
+                  </span>
+                  <span
+                    className="font-mono text-[9px] font-bold uppercase"
+                    style={{ letterSpacing: '0.16em', opacity: 0.75 }}
+                  >
+                    {c.label}
+                  </span>
                 </button>
-              ))}
-            </div>
-
-            {hasActiveFilters && (
-              <button
-                onClick={() => {
-                  setStatusFilter('all')
-                  setCategoryFilter('all')
-                }}
-                className="text-xs text-text-muted hover:text-accent transition-colors cursor-pointer"
-              >
-                Clear filters
-              </button>
-            )}
+              )
+            })}
           </div>
-        )}
-      </div>
+          {hasActiveCategoryFilter && (
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className="font-mono text-xs uppercase text-text-muted hover:text-tomato cursor-pointer"
+              style={{ letterSpacing: '0.18em' }}
+            >
+              · clear ·
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Recipe grid */}
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filtered.map((recipe, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
+          {filtered.map((recipe) => (
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
               image={firstImages[recipe.id]}
-              rotation={CARD_ROTATIONS[i % CARD_ROTATIONS.length]}
               status={statuses?.[recipe.id]}
             />
           ))}
         </div>
-      ) : (search.trim() || hasActiveFilters) ? (
-        <div className="text-center py-16 space-y-3">
-          <p className="text-text-muted text-lg font-display">No matches</p>
-          <p className="text-text-muted/60 text-sm">
-            Try a different search or filter.
+      ) : (search.trim() || statusFilter !== 'all' || hasActiveCategoryFilter) ? (
+        <div className="text-center py-20 space-y-4">
+          <div className="flex justify-center gap-2 opacity-70">
+            <Lemon size={56} />
+            <Pepper size={56} />
+            <Garlic size={56} />
+          </div>
+          <p className="font-display italic text-2xl text-text m-0">
+            Niente da trovare.
+          </p>
+          <p className="font-mono text-sm text-text-muted m-0">
+            Nothing matches — try a different search or filter.
           </p>
         </div>
       ) : null}
+
+      {/* Footer flourish */}
+      <div className="pt-10 pb-4 flex items-center justify-center gap-3 opacity-50">
+        <Wine size={32} />
+        <span
+          className="font-mono text-[10px] font-bold"
+          style={{ letterSpacing: '0.32em', color: 'var(--color-text-muted)' }}
+        >
+          BUON APPETITO
+        </span>
+        <Basil size={32} />
+      </div>
     </div>
   )
 }

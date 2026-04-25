@@ -9,6 +9,7 @@ import { categoryLabel } from '../../lib/categories'
 import { RecipeStatusToggle } from './RecipeStatusToggle'
 import { CookLogSection } from './CookLogSection'
 import { CommentThread } from './CommentThread'
+import { Tomato, PastaNest } from '../illustrations/Produce'
 
 export function RecipeDetail() {
   const { id } = useParams()
@@ -22,16 +23,25 @@ export function RecipeDetail() {
 
   if (isLoading) {
     return (
-      <div className="text-center py-20 text-text-muted">Loading...</div>
+      <div className="text-center py-24 text-text-muted">
+        <PastaNest size={64} className="mx-auto mb-4 opacity-50 animate-pulse" />
+        <p className="font-mono text-sm">caricamento...</p>
+      </div>
     )
   }
 
   if (!recipe) {
     return (
-      <div className="text-center py-20 space-y-4">
-        <p className="text-text-muted text-lg">Recipe not found.</p>
-        <Link to="/" className="text-accent hover:underline cursor-pointer">
-          Back to recipes
+      <div className="text-center py-24 space-y-5">
+        <Tomato size={96} className="mx-auto" />
+        <p className="font-display italic text-3xl text-text m-0">Niente qui.</p>
+        <p className="font-mono text-sm text-text-muted m-0">Recipe not found.</p>
+        <Link
+          to="/"
+          className="inline-block font-mono text-xs uppercase font-bold text-tomato hover:underline mt-2"
+          style={{ letterSpacing: '0.2em' }}
+        >
+          ← all recipes
         </Link>
       </div>
     )
@@ -49,88 +59,111 @@ export function RecipeDetail() {
   }
 
   return (
-    <article className="max-w-2xl mx-auto space-y-8">
+    <article className="max-w-3xl mx-auto space-y-7">
       {/* Back link */}
       <Link
         to="/"
-        className="text-sm text-text-muted hover:text-text transition-colors no-underline"
+        className="inline-block font-mono text-[11px] uppercase font-bold text-text-muted hover:text-tomato no-underline transition-colors"
+        style={{ letterSpacing: '0.25em' }}
       >
-        &larr; All recipes
+        ← all recipes
       </Link>
 
-      {/* Images */}
-      {activeImage && (
+      {/* Hero image carousel */}
+      {activeImage ? (
         <div className="space-y-2">
-          <div className="relative rounded-2xl overflow-hidden shadow-lg -rotate-[0.5deg]">
+          <div
+            className="relative overflow-hidden border border-border"
+            style={{
+              borderRadius: 4,
+              boxShadow:
+                '0 2px 0 var(--color-border), 0 18px 32px -18px rgba(36,21,16,0.45)',
+            }}
+          >
             <img
               src={activeImage.image_url}
               alt=""
-              className={`w-full ${isSourcePhoto ? 'object-contain' : 'max-h-[500px] object-cover'}`}
+              className={`w-full ${
+                isSourcePhoto ? 'object-contain' : 'max-h-[520px] object-cover'
+              }`}
             />
             {activeImage.caption && (
-              <p className="text-sm text-text-muted italic px-4 py-2 bg-bg-card">
+              <p className="font-display italic text-sm text-text-muted px-4 py-2 bg-bg-card border-t border-border m-0">
                 {activeImage.caption}
               </p>
             )}
 
-            {/* Prev/Next arrows */}
             {allImages.length > 1 && (
               <>
                 <button
-                  onClick={() => setActiveImageIndex((i) => (i - 1 + allImages.length) % allImages.length)}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full
-                    bg-black/40 hover:bg-black/60 text-white flex items-center justify-center
-                    cursor-pointer border-none transition-colors backdrop-blur-sm"
+                  onClick={() =>
+                    setActiveImageIndex(
+                      (i) => (i - 1 + allImages.length) % allImages.length,
+                    )
+                  }
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full
+                    bg-text/40 hover:bg-text/60 text-cream flex items-center justify-center
+                    cursor-pointer border-none transition-colors backdrop-blur-sm text-lg leading-none"
+                  aria-label="Previous image"
                 >
-                  &lsaquo;
+                  ‹
                 </button>
                 <button
-                  onClick={() => setActiveImageIndex((i) => (i + 1) % allImages.length)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full
-                    bg-black/40 hover:bg-black/60 text-white flex items-center justify-center
-                    cursor-pointer border-none transition-colors backdrop-blur-sm"
+                  onClick={() =>
+                    setActiveImageIndex((i) => (i + 1) % allImages.length)
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full
+                    bg-text/40 hover:bg-text/60 text-cream flex items-center justify-center
+                    cursor-pointer border-none transition-colors backdrop-blur-sm text-lg leading-none"
+                  aria-label="Next image"
                 >
-                  &rsaquo;
+                  ›
                 </button>
               </>
             )}
+
+            {allImages.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                {allImages.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImageIndex(i)}
+                    aria-label={`Go to image ${i + 1}`}
+                    className="border-none cursor-pointer transition-all"
+                    style={{
+                      width: i === activeImageIndex ? 18 : 6,
+                      height: 6,
+                      borderRadius: 999,
+                      background:
+                        i === activeImageIndex
+                          ? 'var(--color-cream)'
+                          : 'rgba(255,250,238,0.5)',
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-
-          {/* Dots */}
-          {allImages.length > 1 && (
-            <div className="flex justify-center gap-1.5">
-              {allImages.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveImageIndex(i)}
-                  className={`w-2 h-2 rounded-full border-none cursor-pointer transition-all
-                    ${i === activeImageIndex ? 'bg-accent scale-125' : 'bg-border hover:bg-text-muted/50'}`}
-                />
-              ))}
-            </div>
-          )}
         </div>
-      )}
+      ) : null}
 
-      {/* Title + attribution + status */}
-      <header className="space-y-4">
-        <h1 className="text-4xl md:text-5xl tracking-tight leading-[1.1] m-0">
-          {recipe.title}
-        </h1>
-
-        {recipe.description && (
-          <p className="text-lg text-text-muted leading-relaxed">
-            {recipe.description}
-          </p>
-        )}
-
+      {/* Title + meta */}
+      <div className="space-y-4">
         {recipe.categories?.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {recipe.categories.map((cat) => (
+            {recipe.categories.map((cat, i) => (
               <span
                 key={cat}
-                className="px-2.5 py-1 rounded-full text-xs font-medium
-                  bg-sunny-soft text-text-muted border border-sunny/20"
+                className="px-2.5 py-1 font-mono text-[10px] font-bold uppercase border-[1.5px]"
+                style={{
+                  letterSpacing: '0.18em',
+                  background:
+                    i === 0 ? 'var(--color-lemon)' : 'transparent',
+                  color: 'var(--color-text)',
+                  borderColor:
+                    i === 0 ? 'var(--color-lemon)' : 'var(--color-border)',
+                  borderRadius: 2,
+                }}
               >
                 {categoryLabel(cat)}
               </span>
@@ -138,44 +171,68 @@ export function RecipeDetail() {
           </div>
         )}
 
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3 text-sm">
-            <div className="flex items-center gap-2">
-              {author.avatar_url ? (
-                <img
-                  src={author.avatar_url}
-                  alt=""
-                  className="w-6 h-6 rounded-full"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium"
-                  style={{ backgroundColor: author.accent_colour }}
-                >
-                  {author.display_name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <span
-                className="font-medium"
-                style={{ color: author.accent_colour }}
-              >
-                {author.display_name}
-              </span>
-            </div>
-            <span className="text-text-muted/50">&middot;</span>
-            <span className="text-text-muted">
-              {new Date(recipe.created_at).toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </span>
-          </div>
+        <h1
+          className="font-display italic font-medium leading-[0.96] tracking-tight text-text m-0"
+          style={{ fontSize: 'clamp(2rem, 5vw, 3.6rem)' }}
+        >
+          {recipe.title}
+        </h1>
 
-          <RecipeStatusToggle recipeId={recipe.id} />
+        {recipe.description && (
+          <p
+            className="font-display italic text-text-muted leading-[1.45] m-0"
+            style={{ fontSize: 'clamp(1rem, 1.6vw, 1.2rem)' }}
+          >
+            {recipe.description}
+          </p>
+        )}
+      </div>
+
+      {/* Author strip — bordered top/bottom */}
+      <div
+        className="flex items-center justify-between flex-wrap gap-3 py-3"
+        style={{
+          borderTop: '1.5px solid var(--color-text)',
+          borderBottom: '1.5px solid var(--color-text)',
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          {author.avatar_url ? (
+            <img
+              src={author.avatar_url}
+              alt=""
+              className="w-7 h-7 rounded-full"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div
+              className="w-7 h-7 rounded-full flex items-center justify-center text-cream font-display italic font-semibold text-sm"
+              style={{ backgroundColor: author.accent_colour }}
+            >
+              {author.display_name.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span
+            className="font-display italic text-[16px]"
+            style={{ color: author.accent_colour }}
+          >
+            {author.display_name}
+          </span>
+          <span className="text-border mx-1">·</span>
+          <span
+            className="font-mono text-[11px] font-semibold text-text-muted uppercase"
+            style={{ letterSpacing: '0.15em' }}
+          >
+            {new Date(recipe.created_at).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })}
+          </span>
         </div>
-      </header>
+
+        <RecipeStatusToggle recipeId={recipe.id} />
+      </div>
 
       {/* Source URL */}
       {recipe.source_url && (
@@ -183,160 +240,222 @@ export function RecipeDetail() {
           href={recipe.source_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-sm text-accent hover:underline"
+          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase font-bold text-tomato hover:underline"
+          style={{ letterSpacing: '0.18em' }}
         >
-          View original source &rarr;
+          view original source →
         </a>
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 bg-accent-soft/50 rounded-full p-1">
-        <button
-          onClick={() => setActiveTab('recipe')}
-          className={`flex-1 px-5 py-2.5 text-sm font-medium rounded-full transition-all
-            cursor-pointer border-none
-            ${activeTab === 'recipe'
-              ? 'bg-bg-card text-text shadow-sm'
-              : 'bg-transparent text-text-muted hover:text-text'
-            }`}
-        >
-          Recipe
-        </button>
-        <button
-          onClick={() => setActiveTab('notes')}
-          className={`flex-1 px-5 py-2.5 text-sm font-medium rounded-full transition-all
-            cursor-pointer border-none
-            ${activeTab === 'notes'
-              ? 'bg-bg-card text-text shadow-sm'
-              : 'bg-transparent text-text-muted hover:text-text'
-            }`}
-        >
-          Notes & Log
-        </button>
+      <div
+        className="flex gap-0"
+        style={{ borderBottom: '1.5px solid var(--color-border)' }}
+      >
+        {(
+          [
+            { value: 'recipe', it: 'La Ricetta', en: 'RECIPE' },
+            { value: 'notes', it: 'Il Diario', en: 'NOTES & LOG' },
+          ] as const
+        ).map((tab) => {
+          const active = activeTab === tab.value
+          return (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className="text-left py-2.5 px-5 cursor-pointer transition-colors hover:bg-bg-card/50 bg-transparent"
+              style={{
+                borderBottom: active
+                  ? '2.5px solid var(--color-tomato)'
+                  : '2.5px solid transparent',
+                marginBottom: -1.5,
+              }}
+            >
+              <div
+                className="font-display italic leading-none"
+                style={{
+                  fontSize: 17,
+                  color: active ? 'var(--color-text)' : 'var(--color-text-muted)',
+                  fontWeight: active ? 600 : 500,
+                }}
+              >
+                {tab.it}
+              </div>
+              <div
+                className="font-mono mt-1 font-bold"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: '0.18em',
+                  color: active ? 'var(--color-tomato)' : 'var(--color-text-muted)',
+                  opacity: 0.85,
+                }}
+              >
+                {tab.en}
+              </div>
+            </button>
+          )
+        })}
       </div>
 
       {/* Tab content */}
       {activeTab === 'recipe' ? (
         <div className="space-y-8">
-          {/* Recipe content */}
-          <div className="space-y-6">
-            {/* Structured content */}
-            {recipe.content_type === 'structured' && (
-              <>
+          {recipe.content_type === 'structured' && (
+            <div className="grid grid-cols-1 md:grid-cols-[0.85fr_1.15fr] gap-8 md:gap-10">
+              {/* Ingredients */}
+              <section>
+                <div
+                  className="font-mono font-bold mb-1.5"
+                  style={{
+                    fontSize: 11,
+                    letterSpacing: '0.25em',
+                    color: 'var(--color-tomato)',
+                  }}
+                >
+                  INGREDIENTI
+                </div>
                 {recipe.servings && (
-                  <p className="text-sm text-text-muted">
-                    Serves {recipe.servings}
+                  <div className="font-display italic text-sm text-text-muted mb-4">
+                    serves {recipe.servings}
+                  </div>
+                )}
+
+                {recipe.ingredients && recipe.ingredients.length > 0 ? (
+                  <ul className="list-none m-0 p-0">
+                    {recipe.ingredients.map((ing, i) => (
+                      <li
+                        key={i}
+                        className="flex gap-2.5 py-2 leading-snug"
+                        style={{ borderBottom: '1px dashed var(--color-border)' }}
+                      >
+                        {ing.amount || ing.unit ? (
+                          <span
+                            className="font-display italic font-semibold shrink-0 text-right"
+                            style={{
+                              color: 'var(--color-tomato)',
+                              minWidth: 64,
+                              fontSize: 15,
+                            }}
+                          >
+                            {[ing.amount, ing.unit].filter(Boolean).join(' ')}
+                          </span>
+                        ) : (
+                          <span style={{ minWidth: 64 }} />
+                        )}
+                        <span className="font-mono text-[14px]">{ing.item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="font-mono text-sm text-text-muted italic">
+                    No ingredients listed.
                   </p>
                 )}
-
-                {recipe.ingredients && recipe.ingredients.length > 0 && (
-                  <section className="space-y-4">
-                    <div className="divider-flourish">
-                      <h2 className="text-sm uppercase tracking-widest text-accent m-0 shrink-0 font-sans font-semibold">
-                        Ingredients
-                      </h2>
-                    </div>
-                    <ul className="space-y-1.5 list-none p-0 m-0">
-                      {recipe.ingredients.map((ing, i) => (
-                        <li
-                          key={i}
-                          className="flex items-baseline gap-3 py-1.5 border-b border-border/40 last:border-0"
-                        >
-                          {(ing.amount || ing.unit) && (
-                            <span className="text-pop font-display font-semibold text-sm shrink-0 min-w-[4rem] text-right">
-                              {[ing.amount, ing.unit].filter(Boolean).join(' ')}
-                            </span>
-                          )}
-                          <span>{ing.item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
-
-                {recipe.steps && recipe.steps.length > 0 && (
-                  <section className="space-y-4">
-                    <div className="divider-flourish">
-                      <h2 className="text-sm uppercase tracking-widest text-accent m-0 shrink-0 font-sans font-semibold">
-                        Method
-                      </h2>
-                    </div>
-                    <ol className="space-y-5 list-none p-0 m-0">
-                      {recipe.steps.map((step, i) => (
-                        <li key={i} className="flex gap-4">
-                          <span className="text-accent font-display text-2xl font-bold shrink-0 w-8 leading-snug">
-                            {i + 1}
-                          </span>
-                          <p className="m-0 leading-relaxed pt-1">{step}</p>
-                        </li>
-                      ))}
-                    </ol>
-                  </section>
-                )}
-              </>
-            )}
-
-            {/* Freeform content */}
-            {recipe.content_type === 'freeform' && recipe.freeform_text && (
-              <section>
-                <div className="whitespace-pre-wrap leading-relaxed">
-                  {recipe.freeform_text}
-                </div>
               </section>
-            )}
 
-            {/* Photo only — the images themselves are the content */}
-            {recipe.content_type === 'photo_only' && allImages.length === 0 && (
-              <p className="text-text-muted italic">
-                No photos uploaded yet.
-              </p>
-            )}
-          </div>
+              {/* Method */}
+              <section>
+                <div
+                  className="font-mono font-bold mb-5"
+                  style={{
+                    fontSize: 11,
+                    letterSpacing: '0.25em',
+                    color: 'var(--color-tomato)',
+                  }}
+                >
+                  IL METODO
+                </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3 pt-4 border-t border-border">
-            <Link
-              to={`/recipes/${recipe.id}/edit`}
-              className="px-4 py-2 rounded-lg border border-border text-sm text-text
-                hover:bg-bg-card transition-colors no-underline"
+                {recipe.steps && recipe.steps.length > 0 ? (
+                  <ol className="list-none m-0 p-0 flex flex-col gap-5">
+                    {recipe.steps.map((step, i) => (
+                      <li key={i} className="flex gap-4">
+                        <span
+                          className="font-display italic font-medium shrink-0 leading-[0.9]"
+                          style={{
+                            color: 'var(--color-tomato)',
+                            fontSize: 36,
+                            minWidth: 40,
+                          }}
+                        >
+                          {i + 1}.
+                        </span>
+                        <p className="m-0 font-mono text-[14.5px] leading-[1.55] pt-1.5">
+                          {step}
+                        </p>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="font-mono text-sm text-text-muted italic">
+                    No method written.
+                  </p>
+                )}
+              </section>
+            </div>
+          )}
+
+          {/* Freeform content */}
+          {recipe.content_type === 'freeform' && recipe.freeform_text && (
+            <section
+              className="bg-bg-card border border-border p-5 sm:p-7 font-mono text-[14px] leading-[1.65] whitespace-pre-wrap"
+              style={{ borderRadius: 2 }}
             >
-              Edit
+              {recipe.freeform_text}
+            </section>
+          )}
+
+          {/* Photo only */}
+          {recipe.content_type === 'photo_only' && allImages.length === 0 && (
+            <p className="font-display italic text-text-muted text-center py-8">
+              No photos uploaded yet.
+            </p>
+          )}
+
+          {/* Action row */}
+          <div
+            className="flex items-center gap-3 pt-5"
+            style={{ borderTop: '1px solid var(--color-border)' }}
+          >
+            <Link to={`/recipes/${recipe.id}/edit`} className="btn-trat btn-trat-ghost">
+              modifica
             </Link>
 
             {confirmDelete ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-text-muted">Are you sure?</span>
+              <div className="flex items-center gap-2 ml-auto">
+                <span className="font-mono text-xs text-text-muted">
+                  Are you sure?
+                </span>
                 <button
                   onClick={handleDelete}
-                  className="px-3 py-1.5 rounded-lg bg-accent text-white text-sm
-                    cursor-pointer border-none hover:opacity-90"
+                  className="btn-trat"
+                  style={{ background: 'var(--color-aubergine)' }}
                 >
-                  Delete
+                  delete
                 </button>
                 <button
                   onClick={() => setConfirmDelete(false)}
-                  className="px-3 py-1.5 rounded-lg border border-border text-sm
-                    cursor-pointer bg-transparent hover:bg-bg-card"
+                  className="font-mono text-xs uppercase font-bold text-text-muted hover:text-text cursor-pointer bg-transparent border-none px-2"
+                  style={{ letterSpacing: '0.18em' }}
                 >
-                  Cancel
+                  cancel
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="px-4 py-2 rounded-lg text-sm text-text-muted
-                  hover:text-accent transition-colors cursor-pointer
-                  bg-transparent border-none"
+                className="ml-auto font-mono text-[11px] uppercase font-bold text-text-muted hover:text-aubergine cursor-pointer bg-transparent border-none"
+                style={{ letterSpacing: '0.2em' }}
               >
-                Delete
+                delete
               </button>
             )}
           </div>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-10">
           <CookLogSection recipeId={recipe.id} />
-          <div className="border-t border-border pt-8">
+          <div style={{ borderTop: '1px solid var(--color-border)' }} className="pt-8">
             <CommentThread recipeId={recipe.id} />
           </div>
         </div>

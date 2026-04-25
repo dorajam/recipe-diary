@@ -6,9 +6,9 @@ interface RecipeStatusToggleProps {
   recipeId: string
 }
 
-const statuses: { value: RecipeStatus; label: string; icon: string }[] = [
-  { value: 'want_to_try', label: 'Want to try', icon: '🔖' },
-  { value: 'made_it', label: 'Made it', icon: '✓' },
+const statuses: { value: RecipeStatus; it: string; en: string }[] = [
+  { value: 'want_to_try', it: 'Da provare', en: 'WANT TO TRY' },
+  { value: 'made_it',     it: 'Fatto',      en: 'MADE IT' },
 ]
 
 export function RecipeStatusToggle({ recipeId }: RecipeStatusToggleProps) {
@@ -30,20 +30,36 @@ export function RecipeStatusToggle({ recipeId }: RecipeStatusToggleProps) {
     <div className="flex gap-2">
       {statuses.map((s) => {
         const isActive = currentStatus === s.value
+        const accent =
+          s.value === 'want_to_try' ? 'var(--color-basil)' : 'var(--color-tomato)'
         return (
           <button
             key={s.value}
             onClick={() => handleToggle(s.value)}
-            className={`px-3.5 py-1.5 rounded-full text-sm transition-all cursor-pointer border ${
-              isActive
-                ? s.value === 'want_to_try'
-                  ? 'bg-sunny text-white border-sunny shadow-sm'
-                  : 'bg-pop text-white border-pop shadow-sm'
-                : 'bg-transparent text-text-muted border-border hover:border-pop/30 hover:bg-pop-soft'
-            }`}
+            className="cursor-pointer transition-colors px-2.5 py-1 border-[1.5px] flex items-baseline gap-1.5"
+            style={{
+              borderRadius: 2,
+              background: isActive ? accent : 'transparent',
+              borderColor: isActive ? accent : 'var(--color-border)',
+              color: isActive ? 'var(--color-cream)' : 'var(--color-text)',
+            }}
           >
-            <span className="mr-1">{s.icon}</span>
-            {s.label}
+            <span
+              className="font-display italic leading-none"
+              style={{ fontSize: 14 }}
+            >
+              {s.it}
+            </span>
+            <span
+              className="font-mono font-bold uppercase"
+              style={{
+                fontSize: 9,
+                letterSpacing: '0.18em',
+                opacity: isActive ? 0.9 : 0.6,
+              }}
+            >
+              {s.en}
+            </span>
           </button>
         )
       })}

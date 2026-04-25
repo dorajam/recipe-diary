@@ -74,7 +74,7 @@ export function RecipeDetail() {
       {activeImage ? (
         <div className="space-y-2">
           <div
-            className="relative overflow-hidden border border-border"
+            className="image-vintage relative overflow-hidden border border-border"
             style={{
               borderRadius: 4,
               boxShadow:

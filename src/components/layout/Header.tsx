@@ -3,6 +3,12 @@ import { useAuth } from '../../hooks/use-auth'
 import { useRecipes } from '../../hooks/use-recipes'
 import { personColor } from '../../lib/person-color'
 
+function initialsFor(displayName: string): string {
+  const parts = displayName.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+}
+
 export function Header() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
@@ -97,22 +103,13 @@ export function Header() {
                 title="Sign out"
                 className="shrink-0 cursor-pointer bg-transparent border-none p-0"
               >
-                {profile.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt=""
-                    className="w-9 h-9 rounded-full hover:ring-2 hover:ring-tomato/40 transition-all"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-cream font-display italic font-semibold
-                      hover:ring-2 hover:ring-tomato/40 transition-all"
-                    style={{ backgroundColor: personColor(profile) }}
-                  >
-                    {profile.display_name.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-cream font-display italic font-semibold text-sm
+                    hover:ring-2 hover:ring-tomato/40 transition-all"
+                  style={{ backgroundColor: personColor(profile) }}
+                >
+                  {initialsFor(profile.display_name)}
+                </div>
               </button>
             )}
           </div>

@@ -25,6 +25,7 @@
   --color-scotch: #FF3500;
   --color-ackee: #FFB800;
   --color-aubergine: #5A1A36;
+  --color-oxblood: #8E1B2B;
   --color-cream: #FFFAEE;
 
   /* Soft tints (for backgrounds of pills, soft buttons, etc) */
@@ -89,20 +90,20 @@ body::before {
   color: var(--color-text-muted);
 }
 
-/* Stamp — rotated dashed-ring badge for "made it" + cooked count */
+/* Rubber stamp — rectangular, dashed outer ring, slight rotation */
 .stamp {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 12px;
-  border: 2.5px solid var(--color-tomato);
-  color: var(--color-tomato);
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 600;
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  border-radius: 999px;
+  gap: 3px;
+  padding: 4px 10px;
+  border: 2px solid var(--color-oxblood);
+  color: var(--color-oxblood);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: 3px;
   background: transparent;
   transform: rotate(-3deg);
   position: relative;
@@ -111,12 +112,13 @@ body::before {
   content: '';
   position: absolute;
   inset: -3.5px;
-  border-radius: 999px;
+  border-radius: 5px;
   border: 1.2px dashed currentColor;
-  opacity: 0.45;
+  opacity: 0.5;
+  pointer-events: none;
 }
+.stamp-tomato { border-color: var(--color-tomato); color: var(--color-tomato); }
 .stamp-basil { border-color: var(--color-basil); color: var(--color-basil); }
-.stamp-aubergine { border-color: var(--color-aubergine); color: var(--color-aubergine); }
 
 /* Hard-shadow button (cookbook cover style) */
 .btn-trat {

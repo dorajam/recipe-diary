@@ -66,7 +66,7 @@ export function ImageUpload({
                   type="button"
                   onClick={() => onDeleteExisting(img.id)}
                   aria-label="Remove photo"
-                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-aubergine
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-oxblood
                     text-cream text-xs flex items-center justify-center
                     opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
                 >

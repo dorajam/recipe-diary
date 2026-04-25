@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useRecipes } from '../../hooks/use-recipes'
 import { useRecipeFirstImages } from '../../hooks/use-recipe-first-images'
 import { useAllRecipeStatuses } from '../../hooks/use-recipe-status'
+import { useAllCookCounts } from '../../hooks/use-cook-log'
 import { useAuth } from '../../hooks/use-auth'
 import { RecipeCard } from './RecipeCard'
 import { Tomato, Basil, Lemon, Pepper, Garlic, Wine, PastaNest } from '../illustrations/Produce'
@@ -66,6 +67,7 @@ export function RecipeList() {
   const { data: recipes, isLoading, error } = useRecipes()
   const firstImages = useRecipeFirstImages(recipes?.map((r) => r.id))
   const { data: statuses } = useAllRecipeStatuses(user?.id)
+  const { data: cookCounts } = useAllCookCounts()
 
   const [search, setSearch] = useState('')
   const [showCategories, setShowCategories] = useState(false)
@@ -333,6 +335,7 @@ export function RecipeList() {
               recipe={recipe}
               image={firstImages[recipe.id]}
               status={statuses?.[recipe.id]}
+              cookedCount={cookCounts?.[recipe.id] ?? 0}
             />
           ))}
         </div>

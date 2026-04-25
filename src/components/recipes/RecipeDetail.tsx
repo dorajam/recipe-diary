@@ -197,29 +197,14 @@ export function RecipeDetail() {
           borderBottom: '1.5px solid var(--color-text)',
         }}
       >
-        <div className="flex items-center gap-2.5">
-          {author.avatar_url ? (
-            <img
-              src={author.avatar_url}
-              alt=""
-              className="w-7 h-7 rounded-full"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-cream font-display italic font-semibold text-sm"
-              style={{ backgroundColor: personColor(author) }}
-            >
-              {author.display_name.charAt(0).toUpperCase()}
-            </div>
-          )}
+        <div className="flex items-baseline gap-2.5 flex-wrap">
           <span
             className="font-display italic text-[16px]"
             style={{ color: personColor(author) }}
           >
             {author.display_name}
           </span>
-          <span className="text-border mx-1">·</span>
+          <span className="text-border">·</span>
           <span
             className="font-mono text-[11px] font-semibold text-text-muted uppercase"
             style={{ letterSpacing: '0.15em' }}
@@ -430,7 +415,7 @@ export function RecipeDetail() {
                 <button
                   onClick={handleDelete}
                   className="btn-trat"
-                  style={{ background: 'var(--color-aubergine)' }}
+                  style={{ background: 'var(--color-oxblood)' }}
                 >
                   delete
                 </button>
@@ -445,7 +430,7 @@ export function RecipeDetail() {
             ) : (
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="ml-auto font-mono text-[11px] uppercase font-bold text-text-muted hover:text-aubergine cursor-pointer bg-transparent border-none"
+                className="ml-auto font-mono text-[11px] uppercase font-bold text-text-muted hover:text-oxblood cursor-pointer bg-transparent border-none"
                 style={{ letterSpacing: '0.2em' }}
               >
                 delete

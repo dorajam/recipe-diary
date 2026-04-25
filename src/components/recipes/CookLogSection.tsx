@@ -238,7 +238,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
                           onClick={() =>
                             deleteLog.mutate({ logId: log.id, recipeId })
                           }
-                          className="ml-auto font-mono text-[10px] uppercase text-text-muted/40 hover:text-aubergine transition-colors opacity-0 group-hover:opacity-100 bg-transparent border-none cursor-pointer"
+                          className="ml-auto font-mono text-[10px] uppercase text-text-muted/40 hover:text-oxblood transition-colors opacity-0 group-hover:opacity-100 bg-transparent border-none cursor-pointer"
                           style={{ letterSpacing: '0.18em' }}
                         >
                           delete

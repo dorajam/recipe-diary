@@ -6,6 +6,25 @@ export interface CookLogWithProfile extends CookLog {
   profiles: Profile
 }
 
+/** Fetch total cook counts across all recipes, keyed by recipe_id */
+export function useAllCookCounts() {
+  return useQuery({
+    queryKey: ['cook-counts'],
+    queryFn: async (): Promise<Record<string, number>> => {
+      const { data, error } = await supabase
+        .from('cook_log')
+        .select('recipe_id')
+
+      if (error) throw error
+      const map: Record<string, number> = {}
+      for (const row of data as { recipe_id: string }[]) {
+        map[row.recipe_id] = (map[row.recipe_id] ?? 0) + 1
+      }
+      return map
+    },
+  })
+}
+
 export function useCookLog(recipeId: string | undefined) {
   return useQuery({
     queryKey: ['cook-log', recipeId],
@@ -49,6 +68,7 @@ export function useAddCookLog() {
     },
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['cook-log', vars.recipeId] })
+      queryClient.invalidateQueries({ queryKey: ['cook-counts'] })
     },
   })
 }
@@ -72,6 +92,7 @@ export function useDeleteCookLog() {
     },
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['cook-log', vars.recipeId] })
+      queryClient.invalidateQueries({ queryKey: ['cook-counts'] })
     },
   })
 }

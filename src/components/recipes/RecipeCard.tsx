@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import type { RecipeWithProfile, RecipeImage, RecipeStatus } from '../../lib/types'
 import { categoryLabel } from '../../lib/categories'
 import { Tomato, Basil, Lemon, Pepper } from '../illustrations/Produce'
-import { personColor } from '../../lib/person-color'
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 
@@ -11,6 +10,7 @@ interface RecipeCardProps {
   image?: RecipeImage
   rotation?: string
   status?: RecipeStatus | null
+  cookedCount?: number
 }
 
 // Pick a doodle to fill the empty image slot, deterministically by id
@@ -33,8 +33,7 @@ function pickGradient(id: string) {
   return variants[Math.abs(h) % variants.length]
 }
 
-export function RecipeCard({ recipe, image, status }: RecipeCardProps) {
-  const profile = recipe.profiles
+export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCardProps) {
   const isNew = Date.now() - new Date(recipe.created_at).getTime() < ONE_DAY
   const Doodle = pickDoodle(recipe.id)
   const gradient = pickGradient(recipe.id)
@@ -136,51 +135,40 @@ export function RecipeCard({ recipe, image, status }: RecipeCardProps) {
         </div>
 
         {/* Card body */}
-        <div className="px-4 py-3.5 space-y-3">
-          {recipe.description && (
-            <p className="font-mono text-[12px] text-text-muted leading-[1.55] m-0 line-clamp-2">
-              {recipe.description}
-            </p>
-          )}
-
-          <div className="flex items-center gap-2">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt=""
-                className="w-[22px] h-[22px] rounded-full"
-                referrerPolicy="no-referrer"
-              />
+        <div className="px-4 py-3.5">
+          <div className="flex items-start gap-3 min-h-[2.25rem]">
+            {recipe.description ? (
+              <p className="font-mono text-[12px] text-text-muted leading-[1.5] m-0 line-clamp-2 flex-1">
+                {recipe.description}
+              </p>
             ) : (
-              <div
-                className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-cream font-display italic font-semibold text-[13px]"
-                style={{ backgroundColor: personColor(profile) }}
-              >
-                {profile.display_name.charAt(0).toUpperCase()}
-              </div>
+              <span className="flex-1" />
             )}
-            <span className="font-display italic text-[14px] text-text">
-              by {profile.display_name}
-            </span>
 
-            <span className="ml-auto">
-              {status === 'made_it' ? (
-                <span className="stamp" style={{ fontSize: '0.7rem', padding: '3px 9px' }}>
-                  cooked
-                </span>
-              ) : status === 'want_to_try' ? (
-                <span
-                  className="font-mono uppercase font-bold text-[9.5px] px-2 py-1 border-[1.5px]"
-                  style={{
-                    color: 'var(--color-basil)',
-                    borderColor: 'var(--color-basil)',
-                    letterSpacing: '0.18em',
-                  }}
-                >
-                  Want to try
-                </span>
-              ) : null}
-            </span>
+            {/* Status stamp */}
+            {status === 'made_it' || cookedCount > 0 ? (
+              <span className="stamp shrink-0">
+                cooked
+                {cookedCount > 1 && (
+                  <span style={{ marginLeft: 2, opacity: 0.85 }}>
+                    ×{cookedCount}
+                  </span>
+                )}
+              </span>
+            ) : status === 'want_to_try' ? (
+              <span
+                className="shrink-0 inline-flex items-center px-2.5 py-1 font-mono font-bold uppercase border-[1.5px]"
+                style={{
+                  color: 'var(--color-basil)',
+                  borderColor: 'var(--color-basil)',
+                  fontSize: 9.5,
+                  letterSpacing: '0.18em',
+                  borderRadius: 2,
+                }}
+              >
+                want to try
+              </span>
+            ) : null}
           </div>
         </div>
       </article>

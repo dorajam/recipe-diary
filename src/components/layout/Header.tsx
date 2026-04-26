@@ -1,6 +1,7 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/use-auth'
-import { personColor } from '../../lib/person-color'
+import { useRecipes } from '../../hooks/use-recipes'
 
 function initialsFor(displayName: string): string {
   const parts = displayName.trim().split(/\s+/)
@@ -8,79 +9,308 @@ function initialsFor(displayName: string): string {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
 }
 
+interface AvatarProps {
+  initials: string
+  size?: number
+  onClick?: () => void
+  title?: string
+}
+
+function Avatar({ initials, size = 34, onClick, title }: AvatarProps) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: 'var(--color-tomato)',
+        color: 'var(--color-cream)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: '0.04em',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: 'none',
+        flexShrink: 0,
+        cursor: 'pointer',
+        padding: 0,
+      }}
+    >
+      {initials}
+    </button>
+  )
+}
+
+function GhostAddBtn({ size = 'md' }: { size?: 'sm' | 'md' }) {
+  const dims = size === 'sm' ? { h: 32, px: 10, fs: 12 } : { h: 40, px: 14, fs: 13 }
+  return (
+    <Link
+      to="/recipes/new"
+      style={{
+        height: dims.h,
+        padding: `0 ${dims.px}px`,
+        borderRadius: 4,
+        background: 'transparent',
+        color: 'var(--color-tomato)',
+        border: '1.5px solid var(--color-tomato)',
+        fontFamily: 'var(--font-display)',
+        fontStyle: 'italic',
+        fontSize: dims.fs,
+        fontWeight: 500,
+        cursor: 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        textDecoration: 'none',
+        lineHeight: 1,
+      }}
+    >
+      <span style={{ fontFamily: 'var(--font-mono)', fontStyle: 'normal', fontWeight: 500 }}>+</span>
+      aggiungi
+    </Link>
+  )
+}
+
+function IconAddBtn() {
+  return (
+    <Link
+      to="/recipes/new"
+      aria-label="aggiungi"
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: 4,
+        background: 'var(--color-tomato)',
+        color: 'var(--color-cream)',
+        border: '1px solid var(--color-text)',
+        boxShadow: '2px 2px 0 var(--color-text)',
+        fontSize: 18,
+        lineHeight: 1,
+        fontWeight: 600,
+        cursor: 'pointer',
+        flexShrink: 0,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textDecoration: 'none',
+      }}
+    >
+      +
+    </Link>
+  )
+}
+
+function MainWordmark() {
+  return (
+    <h1
+      className="leading-[1.05] tracking-[-0.01em] sm:tracking-[-0.015em]"
+      style={{
+        margin: 0,
+        fontFamily: 'var(--font-display)',
+        fontStyle: 'italic',
+        fontWeight: 500,
+        color: 'var(--color-text)',
+        fontSize: 'clamp(24px, 4.2vw, 52px)',
+      }}
+    >
+      La <span style={{ color: 'var(--color-tomato)' }}>Cucina</span> di{' '}
+      <span style={{ color: 'var(--color-basil)' }}>Feeny</span> &amp;{' '}
+      <span style={{ color: 'var(--color-basil)' }}>Beeny</span>
+    </h1>
+  )
+}
+
+function InlineWordmark() {
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        margin: 0,
+        fontFamily: 'var(--font-display)',
+        fontSize: 22,
+        lineHeight: 1,
+        fontStyle: 'italic',
+        fontWeight: 500,
+        letterSpacing: '-0.01em',
+        color: 'var(--color-text)',
+      }}
+    >
+      La <span style={{ color: 'var(--color-tomato)' }}>Cucina</span> di{' '}
+      <span style={{ color: 'var(--color-basil)' }}>Feeny</span>{' '}
+      <span style={{ color: 'var(--color-tomato)' }}>&amp;</span>{' '}
+      <span style={{ color: 'var(--color-basil)' }}>Beeny</span>
+    </span>
+  )
+}
+
 export function Header() {
   const { profile, signOut } = useAuth()
+  const { data: recipes } = useRecipes()
+  const recipeCount = recipes?.length ?? 0
+  const initials = profile ? initialsFor(profile.display_name) : ''
+
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const node = sentinelRef.current
+    if (!node) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setScrolled(!entry.isIntersecting),
+      { rootMargin: '0px' },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
 
   return (
-    <header className="border-b-2 border-border bg-bg relative">
-      <div className="max-w-6xl mx-auto px-5 sm:px-10 pt-5 sm:pt-7 pb-4 sm:pb-5">
-        <div className="flex items-start justify-between gap-4">
-          {/* Masthead title */}
-          <Link to="/" className="no-underline group cursor-pointer block">
-            {/* Eyebrow row */}
-            <div className="eyebrow flex items-center gap-2.5 flex-wrap">
-              <span>EST. 2011</span>
-              <span
-                aria-hidden
-                className="inline-block w-1 h-1 rounded-full"
-                style={{ background: 'var(--color-tomato)' }}
-              />
-              <span className="hidden sm:inline">HOME COOKING</span>
-              <span
-                aria-hidden
-                className="hidden sm:inline-block w-1 h-1 rounded-full"
-                style={{ background: 'var(--color-basil)' }}
-              />
-              <span>SUNDAYS &amp; WEEKNIGHTS</span>
-            </div>
-
-            <h1
-              className="m-0 mt-1.5 sm:mt-2 font-display italic font-medium leading-[0.95] tracking-tight text-text"
-              style={{ fontSize: 'clamp(1.7rem, 4vw, 2.8rem)' }}
+    <>
+      <header style={{ background: 'var(--color-bg)' }}>
+        {/* Tier 1 — trivia strip */}
+        <div
+          className="px-[22px] sm:px-14"
+          style={{
+            paddingTop: 8,
+            paddingBottom: 8,
+            borderBottom: '1px solid var(--color-border)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 9,
+            textTransform: 'uppercase',
+            color: 'var(--color-text-muted)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            letterSpacing: '0.3em',
+          }}
+        >
+          <span className="sm:hidden">EST. 2011 · VOL. ONE</span>
+          <span
+            className="hidden sm:inline"
+            style={{ letterSpacing: '0.36em' }}
+          >
+            EST. 2011 · HOME COOKING · VOL. ONE
+          </span>
+          <span style={{ color: 'var(--color-tomato)' }}>
+            ● {recipeCount}{' '}
+            <span
+              className="hidden sm:inline"
+              style={{ color: 'var(--color-text-muted)' }}
             >
-              La{' '}
-              <span style={{ color: 'var(--color-tomato)' }}>Cucina</span>
-              {' '}di{' '}
-              <span style={{ color: 'var(--color-basil)' }}>
-                Feeny &amp; Beeny
-              </span>
-            </h1>
+              RICETTE
+            </span>
+          </span>
+        </div>
 
-            <p
-              className="m-0 mt-2 font-mono text-[10px] text-text-muted font-medium"
-              style={{ letterSpacing: '0.18em' }}
-            >
-              RECIPES &amp; RAMBLES{' '}
-              <span style={{ color: 'var(--color-tomato)' }}>·</span>{' '}
-              VOL. ONE
-            </p>
+        {/* Tier 2 — wordmark + actions */}
+        <div
+          className="px-[22px] sm:px-14 pt-4 pb-2 sm:pt-6 sm:pb-4"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <Link
+            to="/"
+            className="flex-1"
+            style={{ textDecoration: 'none', minWidth: 0 }}
+          >
+            <MainWordmark />
           </Link>
 
-          {/* Actions column */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 mt-1">
-            <Link to="/recipes/new" className="btn-trat">
-              <span className="text-lg leading-none">+</span>
-              <span className="hidden sm:inline">aggiungi</span>
-            </Link>
-
-            {profile && (
-              <button
-                onClick={signOut}
-                title="Sign out"
-                className="shrink-0 cursor-pointer bg-transparent border-none p-0"
+          {profile && (
+            <>
+              {/* Desktop actions */}
+              <div
+                className="hidden sm:flex"
+                style={{ gap: 14, alignItems: 'center' }}
               >
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-cream font-display italic font-semibold text-sm
-                    hover:ring-2 hover:ring-tomato/40 transition-all"
-                  style={{ backgroundColor: personColor(profile) }}
-                >
-                  {initialsFor(profile.display_name)}
-                </div>
-              </button>
-            )}
-          </div>
+                <GhostAddBtn />
+                <Avatar
+                  initials={initials}
+                  size={34}
+                  onClick={signOut}
+                  title="Sign out"
+                />
+              </div>
+              {/* Mobile actions */}
+              <div
+                className="flex sm:hidden"
+                style={{ gap: 8, alignItems: 'center', flexShrink: 0 }}
+              >
+                <IconAddBtn />
+                <Avatar
+                  initials={initials}
+                  size={32}
+                  onClick={signOut}
+                  title="Sign out"
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Sentinel for sticky-bar IntersectionObserver */}
+        <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />
+      </header>
+
+      {/* Sticky condensed bar (desktop only) */}
+      <div
+        aria-hidden={!scrolled}
+        className="hidden sm:flex px-14"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          paddingTop: 12,
+          paddingBottom: 12,
+          background: 'var(--color-bg-card)',
+          borderBottom: '1px solid var(--color-border)',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          transform: scrolled ? 'translateY(0)' : 'translateY(-100%)',
+          transition: 'transform 0.2s ease',
+          pointerEvents: scrolled ? 'auto' : 'none',
+        }}
+      >
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <InlineWordmark />
+        </Link>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              color: 'var(--color-text-muted)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '6px 10px',
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+            }}
+          >
+            ↑ TOP
+          </button>
+          <GhostAddBtn size="sm" />
+          {profile && (
+            <Avatar
+              initials={initials}
+              size={28}
+              onClick={signOut}
+              title="Sign out"
+            />
+          )}
         </div>
       </div>
-    </header>
+    </>
   )
 }

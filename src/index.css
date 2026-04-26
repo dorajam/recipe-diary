@@ -168,6 +168,19 @@ body::before {
   opacity: 0.65;
 }
 
+/* Warm photo treatment for recipe card images */
+.recipe-card-photo > img {
+  filter: saturate(1.08) sepia(0.14) brightness(1.04) contrast(1.02);
+}
+.recipe-card-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,140,40,0.14), rgba(255,80,20,0.08));
+  mix-blend-mode: multiply;
+}
+
 /* Decorative divider with bullet dots in palette colors */
 .divider-flourish {
   display: flex;

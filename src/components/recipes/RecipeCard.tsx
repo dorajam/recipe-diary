@@ -55,7 +55,7 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
       >
         {/* Image area with overlay title */}
         <div
-          className="aspect-[4/3] relative overflow-hidden"
+          className={`aspect-[4/3] relative overflow-hidden${image ? ' recipe-card-photo' : ''}`}
           style={image ? undefined : { background: gradient }}
         >
           {image ? (
@@ -81,6 +81,7 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
               style={{
                 background:
                   'linear-gradient(to top, rgba(31,18,8,0.55) 0%, rgba(31,18,8,0.0) 45%)',
+                zIndex: 2,
               }}
             />
           )}
@@ -92,6 +93,7 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
               fontSize: 'clamp(1.1rem, 2.2vw, 1.5rem)',
               color: '#FFFAEE',
               textShadow: '0 2px 14px rgba(0,0,0,0.45)',
+              zIndex: 2,
             }}
           >
             {recipe.title}
@@ -105,6 +107,7 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
                 background: 'var(--color-lemon)',
                 color: 'var(--color-text)',
                 letterSpacing: '0.2em',
+                zIndex: 2,
               }}
             >
               {primaryCategory}
@@ -120,6 +123,7 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
                 color: '#FFFAEE',
                 fontSize: 13,
                 transform: 'rotate(6deg)',
+                zIndex: 2,
               }}
             >
               fresh!

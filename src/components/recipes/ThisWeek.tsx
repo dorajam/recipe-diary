@@ -6,6 +6,7 @@ import { useAllRecipeStatuses } from '../../hooks/use-recipe-status'
 import { useAllCookCounts } from '../../hooks/use-cook-log'
 import { useAuth } from '../../hooks/use-auth'
 import { RecipeCard } from './RecipeCard'
+import { GroceryList } from './GroceryList'
 import { RollingPin, Basil } from '../illustrations/Produce'
 
 /**
@@ -61,37 +62,47 @@ export function ThisWeek() {
         </p>
       </div>
 
-      {/* ── Planned recipes, or empty state ── */}
-      {planned.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7 items-start">
-          {planned.map((recipe) => (
-            <RecipeCard
-              key={recipe.id}
-              recipe={recipe}
-              image={firstImages[recipe.id]}
-              status="planned"
-              cookedCount={cookCounts?.[recipe.id] ?? 0}
-            />
-          ))}
+      {/* ── Two columns: planned recipes (main) + grocery list (sidebar) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8 items-start">
+        {/* Main: planned recipes or empty state */}
+        <div>
+          {planned.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
+              {planned.map((recipe) => (
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  image={firstImages[recipe.id]}
+                  status="planned"
+                  cookedCount={cookCounts?.[recipe.id] ?? 0}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 space-y-5 border border-dashed border-border" style={{ borderRadius: 4 }}>
+              <Basil size={72} className="mx-auto" />
+              <div className="space-y-2">
+                <p className="font-display italic text-2xl text-text m-0">
+                  Nothing planned yet.
+                </p>
+                <p className="font-mono text-sm text-text-muted m-0 max-w-md mx-auto leading-relaxed">
+                  Browse your collection and mark a few recipes{' '}
+                  <span style={{ color: 'var(--color-ackee)' }}>Planned</span> to
+                  build this week's cook list.
+                </p>
+              </div>
+              <Link to="/" className="btn-trat btn-trat-ghost inline-flex mx-auto">
+                Browse recipes
+              </Link>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="text-center py-20 space-y-5 border border-dashed border-border" style={{ borderRadius: 4 }}>
-          <Basil size={72} className="mx-auto" />
-          <div className="space-y-2">
-            <p className="font-display italic text-2xl text-text m-0">
-              Nothing planned yet.
-            </p>
-            <p className="font-mono text-sm text-text-muted m-0 max-w-md mx-auto leading-relaxed">
-              Browse your collection and mark a few recipes{' '}
-              <span style={{ color: 'var(--color-ackee)' }}>Planned</span> to
-              build this week's cook list.
-            </p>
-          </div>
-          <Link to="/" className="btn-trat btn-trat-ghost inline-flex mx-auto">
-            Browse recipes
-          </Link>
+
+        {/* Sidebar: grocery list — sticky on desktop so it follows while scrolling */}
+        <div className="lg:sticky lg:top-4">
+          <GroceryList />
         </div>
-      )}
+      </div>
     </div>
   )
 }

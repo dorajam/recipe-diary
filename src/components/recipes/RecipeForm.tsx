@@ -16,6 +16,8 @@ import { decodeHtmlEntities } from '../../lib/decode-html'
 import { ImageUpload } from './ImageUpload'
 import { IngredientEditor } from './IngredientEditor'
 import { StepEditor } from './StepEditor'
+import { InstagramEmbed } from './InstagramEmbed'
+import { isInstagramUrl, instagramPostId } from '../../lib/instagram'
 import { supabase } from '../../lib/supabase'
 
 interface ScrapedRecipe {
@@ -147,6 +149,14 @@ export function RecipeForm() {
 
   async function handleFetchUrl() {
     if (!sourceUrl.trim()) return
+
+    // Instagram blocks scraping — don't even try. Reveal the form with the
+    // reel embedded so you can watch it and fill in the details yourself.
+    if (isInstagramUrl(sourceUrl.trim())) {
+      setFetchError('')
+      setHasFetched(true)
+      return
+    }
 
     setFetching(true)
     setFetchError('')
@@ -418,11 +428,29 @@ export function RecipeForm() {
                   disabled={fetching || !sourceUrl.trim()}
                   className="btn-trat shrink-0 disabled:opacity-50"
                 >
-                  {fetching ? 'fetching...' : 'fetch'}
+                  {fetching
+                    ? 'fetching...'
+                    : isInstagramUrl(sourceUrl)
+                      ? 'preview'
+                      : 'fetch'}
                 </button>
               </div>
               {fetchError && (
                 <p className="font-mono text-xs text-tomato m-0">{fetchError}</p>
+              )}
+
+              {isInstagramUrl(sourceUrl) && (
+                <p className="font-mono text-[12px] text-text-muted m-0 leading-[1.5]">
+                  Instagram can’t be auto-read — we’ll embed the reel so you can
+                  watch it, then just add a title and tags below.
+                </p>
+              )}
+
+              {/* Live Instagram preview */}
+              {isInstagramUrl(sourceUrl) && instagramPostId(sourceUrl) && (
+                <div className="pt-2">
+                  <InstagramEmbed postId={instagramPostId(sourceUrl)!} />
+                </div>
               )}
 
               {!hasFetched && !sourceUrl.trim() && (

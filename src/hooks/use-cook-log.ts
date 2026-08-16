@@ -51,17 +51,23 @@ export function useAddCookLog() {
       cookedBy,
       cookedOn,
       note,
+      changes,
+      rating,
     }: {
       recipeId: string
       cookedBy: string
       cookedOn: string
       note?: string
+      changes?: string
+      rating?: number | null
     }) => {
       const { error } = await supabase.from('cook_log').insert({
         recipe_id: recipeId,
         cooked_by: cookedBy,
         cooked_on: cookedOn,
         note: note || null,
+        changes: changes || null,
+        rating: rating ?? null,
       })
 
       if (error) throw error

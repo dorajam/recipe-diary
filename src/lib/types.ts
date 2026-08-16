@@ -78,6 +78,8 @@ export interface CookLog {
   cooked_by: string
   cooked_on: string
   note: string | null
+  changes: string | null
+  rating: number | null
   photo_url: string | null
   created_at: string
 }

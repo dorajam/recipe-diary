@@ -50,6 +50,8 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
   const [showForm, setShowForm] = useState(false)
   const [cookedOn, setCookedOn] = useState(() => new Date().toISOString().split('T')[0])
   const [note, setNote] = useState('')
+  const [changes, setChanges] = useState('')
+  const [rating, setRating] = useState<number | null>(null)
 
   async function handleQuickLog() {
     if (!profile) return
@@ -72,11 +74,15 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
       cookedBy: profile.id,
       cookedOn,
       note: note.trim() || undefined,
+      changes: changes.trim() || undefined,
+      rating,
     })
 
     markCooked()
 
     setNote('')
+    setChanges('')
+    setRating(null)
     setShowForm(false)
   }
 
@@ -112,7 +118,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
             className="font-display italic text-sm cursor-pointer bg-transparent border-none px-2"
             style={{ color: 'var(--color-basil)' }}
           >
-            {showForm ? 'cancel' : '+ con note'}
+            {showForm ? 'cancel' : '+ with details'}
           </button>
         </div>
       </div>
@@ -153,13 +159,48 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
                 color: 'var(--color-text-muted)',
               }}
             >
+              RATING · IL VOTO
+            </div>
+            <StarRating value={rating} onChange={setRating} />
+          </div>
+
+          <div>
+            <div
+              className="font-mono font-bold mb-1.5"
+              style={{
+                fontSize: 9,
+                letterSpacing: '0.22em',
+                color: 'var(--color-text-muted)',
+              }}
+            >
               NOTES · APPUNTI
             </div>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              rows={3}
-              placeholder="how did it turn out? any changes you made?"
+              rows={2}
+              placeholder="how did it turn out?"
+              className="w-full px-3 py-2 font-mono text-[13px] bg-bg text-text border border-border placeholder:text-text-muted/50 placeholder:italic focus:outline-none focus:border-tomato transition-colors resize-y"
+              style={{ borderRadius: 2 }}
+            />
+          </div>
+
+          <div>
+            <div
+              className="font-mono font-bold mb-1.5"
+              style={{
+                fontSize: 9,
+                letterSpacing: '0.22em',
+                color: 'var(--color-basil)',
+              }}
+            >
+              WHAT I CHANGED · LE MODIFICHE
+            </div>
+            <textarea
+              value={changes}
+              onChange={(e) => setChanges(e.target.value)}
+              rows={2}
+              placeholder="tweaks for next time — more garlic, less salt, baked 5 min longer…"
               className="w-full px-3 py-2 font-mono text-[13px] bg-bg text-text border border-border placeholder:text-text-muted/50 placeholder:italic focus:outline-none focus:border-tomato transition-colors resize-y"
               style={{ borderRadius: 2 }}
             />
@@ -219,17 +260,40 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
 
                   {/* Body */}
                   <div className="min-w-0">
+                    {log.rating != null && (
+                      <div className="mb-2">
+                        <StarRating value={log.rating} readOnly size={16} />
+                      </div>
+                    )}
+
                     {log.note ? (
                       <p
-                        className="font-display italic text-text leading-[1.5] m-0 mb-3"
+                        className="font-display italic text-text leading-[1.5] m-0 mb-2"
                         style={{ fontSize: 'clamp(1rem, 1.6vw, 1.15rem)' }}
                       >
                         “{log.note}”
                       </p>
-                    ) : (
-                      <p className="font-display italic text-text-muted/70 leading-[1.5] m-0 mb-3">
+                    ) : !log.changes && log.rating == null ? (
+                      <p className="font-display italic text-text-muted/70 leading-[1.5] m-0 mb-2">
                         cooked, no notes
                       </p>
+                    ) : null}
+
+                    {log.changes && (
+                      <div
+                        className="mb-3 pl-3 py-1"
+                        style={{ borderLeft: '2px solid var(--color-basil)' }}
+                      >
+                        <span
+                          className="font-mono font-bold uppercase block mb-0.5"
+                          style={{ fontSize: 8, letterSpacing: '0.22em', color: 'var(--color-basil)' }}
+                        >
+                          changed
+                        </span>
+                        <span className="font-mono text-[12px] text-text-muted leading-snug">
+                          {log.changes}
+                        </span>
+                      </div>
                     )}
 
                     {/* Byline */}
@@ -353,5 +417,50 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
         </div>
       )}
     </section>
+  )
+}
+
+/** Interactive 1–5 star rating. Click a filled star again to clear. */
+function StarRating({
+  value,
+  onChange,
+  readOnly = false,
+  size = 24,
+}: {
+  value: number | null
+  onChange?: (v: number | null) => void
+  readOnly?: boolean
+  size?: number
+}) {
+  return (
+    <div className="flex gap-1" role={readOnly ? undefined : 'radiogroup'}>
+      {[1, 2, 3, 4, 5].map((n) => {
+        const filled = (value ?? 0) >= n
+        return (
+          <button
+            key={n}
+            type="button"
+            disabled={readOnly}
+            onClick={() => onChange?.(value === n ? null : n)}
+            aria-label={`${n} star${n > 1 ? 's' : ''}`}
+            aria-pressed={filled}
+            className={`bg-transparent border-none p-0 ${readOnly ? '' : 'cursor-pointer hover:scale-110'} transition-transform`}
+            style={{ lineHeight: 0 }}
+          >
+            <svg
+              width={size}
+              height={size}
+              viewBox="0 0 24 24"
+              fill={filled ? 'var(--color-ackee)' : 'none'}
+              stroke={filled ? 'var(--color-ackee)' : 'var(--color-text-muted)'}
+              strokeWidth="1.5"
+              strokeLinejoin="round"
+            >
+              <path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 5.9 21.3l1.2-6.6L2.3 9.5l6.6-.9z" />
+            </svg>
+          </button>
+        )
+      })}
+    </div>
   )
 }

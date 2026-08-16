@@ -7,6 +7,7 @@ import {
 import { useState } from 'react'
 import { categoryLabel } from '../../lib/categories'
 import { RecipeStatusToggle } from './RecipeStatusToggle'
+import { CookbookButton } from './CookbookButton'
 import { StarButton } from './StarButton'
 import { CookLogSection } from './CookLogSection'
 import { CommentThread } from './CommentThread'
@@ -223,7 +224,10 @@ export function RecipeDetail() {
           </span>
         </div>
 
-        <RecipeStatusToggle recipeId={recipe.id} />
+        <div className="flex flex-wrap items-center gap-3">
+          <RecipeStatusToggle recipeId={recipe.id} />
+          <CookbookButton recipeId={recipe.id} />
+        </div>
       </div>
 
       {/* Source URL */}

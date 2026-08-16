@@ -29,8 +29,8 @@ export function NotAllowed() {
           </h1>
 
           <p className="font-display italic text-text-muted text-base m-0 leading-relaxed">
-            La Cucina di Feeny &amp; Beeny is a personal space for two friends.
-            It's not open for new accounts right now.
+            Dora&rsquo;s Kitchen is a personal space. It&rsquo;s not open for new
+            accounts right now.
           </p>
 
           {user?.email && (

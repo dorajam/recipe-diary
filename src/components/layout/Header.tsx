@@ -1,7 +1,37 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/use-auth'
 import { useRecipes } from '../../hooks/use-recipes'
+
+function NavTabs() {
+  const linkStyle = ({ isActive }: { isActive: boolean }) => ({
+    fontFamily: 'var(--font-display)',
+    fontStyle: 'italic' as const,
+    fontSize: 16,
+    fontWeight: 500,
+    textDecoration: 'none',
+    color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
+    borderBottom: isActive
+      ? '2px solid var(--color-tomato)'
+      : '2px solid transparent',
+    paddingBottom: 2,
+    lineHeight: 1,
+    whiteSpace: 'nowrap' as const,
+  })
+  return (
+    <nav style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
+      <NavLink to="/week" style={linkStyle}>
+        This week
+      </NavLink>
+      <NavLink to="/starred" style={linkStyle}>
+        Starred
+      </NavLink>
+      <NavLink to="/" end style={linkStyle}>
+        All recipes
+      </NavLink>
+    </nav>
+  )
+}
 
 function initialsFor(displayName: string): string {
   const parts = displayName.trim().split(/\s+/)
@@ -70,7 +100,7 @@ function GhostAddBtn({ size = 'md' }: { size?: 'sm' | 'md' }) {
       }}
     >
       <span style={{ fontFamily: 'var(--font-mono)', fontStyle: 'normal', fontWeight: 500 }}>+</span>
-      aggiungi
+      add recipe
     </Link>
   )
 }
@@ -79,7 +109,7 @@ function IconAddBtn() {
   return (
     <Link
       to="/recipes/new"
-      aria-label="aggiungi"
+      aria-label="add recipe"
       style={{
         width: 32,
         height: 32,
@@ -117,9 +147,7 @@ function MainWordmark() {
         fontSize: 'clamp(24px, 4.2vw, 52px)',
       }}
     >
-      La <span style={{ color: 'var(--color-tomato)' }}>Cucina</span> di{' '}
-      <span style={{ color: 'var(--color-basil)' }}>Feeny</span> &amp;{' '}
-      <span style={{ color: 'var(--color-basil)' }}>Beeny</span>
+      Dora&rsquo;s <span style={{ color: 'var(--color-tomato)' }}>Kitchen</span>
     </h1>
   )
 }
@@ -139,10 +167,7 @@ function InlineWordmark() {
         color: 'var(--color-text)',
       }}
     >
-      La <span style={{ color: 'var(--color-tomato)' }}>Cucina</span> di{' '}
-      <span style={{ color: 'var(--color-basil)' }}>Feeny</span>{' '}
-      <span style={{ color: 'var(--color-tomato)' }}>&amp;</span>{' '}
-      <span style={{ color: 'var(--color-basil)' }}>Beeny</span>
+      Dora&rsquo;s <span style={{ color: 'var(--color-tomato)' }}>Kitchen</span>
     </span>
   )
 }
@@ -200,7 +225,7 @@ export function Header() {
               className="hidden sm:inline"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              RICETTE
+              RECIPES
             </span>
           </span>
         </div>
@@ -228,8 +253,9 @@ export function Header() {
               {/* Desktop actions */}
               <div
                 className="hidden sm:flex"
-                style={{ gap: 14, alignItems: 'center' }}
+                style={{ gap: 18, alignItems: 'center' }}
               >
+                <NavTabs />
                 <GhostAddBtn />
                 <Avatar
                   initials={initials}
@@ -254,6 +280,16 @@ export function Header() {
             </>
           )}
         </div>
+
+        {/* Mobile nav row */}
+        {profile && (
+          <div
+            className="flex sm:hidden px-[22px] pb-3"
+            style={{ borderBottom: '1px solid var(--color-border)' }}
+          >
+            <NavTabs />
+          </div>
+        )}
 
         {/* Sentinel for sticky-bar IntersectionObserver */}
         <div ref={sentinelRef} aria-hidden style={{ height: 1 }} />

@@ -7,6 +7,7 @@ import {
 import { useState } from 'react'
 import { categoryLabel } from '../../lib/categories'
 import { RecipeStatusToggle } from './RecipeStatusToggle'
+import { StarButton } from './StarButton'
 import { CookLogSection } from './CookLogSection'
 import { CommentThread } from './CommentThread'
 import { Tomato, PastaNest } from '../illustrations/Produce'
@@ -26,7 +27,7 @@ export function RecipeDetail() {
     return (
       <div className="text-center py-24 text-text-muted">
         <PastaNest size={64} className="mx-auto mb-4 opacity-50 animate-pulse" />
-        <p className="font-mono text-sm">caricamento...</p>
+        <p className="font-mono text-sm">loading…</p>
       </div>
     )
   }
@@ -35,7 +36,7 @@ export function RecipeDetail() {
     return (
       <div className="text-center py-24 space-y-5">
         <Tomato size={96} className="mx-auto" />
-        <p className="font-display italic text-3xl text-text m-0">Niente qui.</p>
+        <p className="font-display italic text-3xl text-text m-0">Not found.</p>
         <p className="font-mono text-sm text-text-muted m-0">Recipe not found.</p>
         <Link
           to="/"
@@ -172,12 +173,17 @@ export function RecipeDetail() {
           </div>
         )}
 
-        <h1
-          className="font-display italic font-medium leading-[0.96] tracking-tight text-text m-0"
-          style={{ fontSize: 'clamp(2rem, 5vw, 3.6rem)' }}
-        >
-          {recipe.title}
-        </h1>
+        <div className="flex items-start gap-3">
+          <h1
+            className="font-display italic font-medium leading-[0.96] tracking-tight text-text m-0 flex-1"
+            style={{ fontSize: 'clamp(2rem, 5vw, 3.6rem)' }}
+          >
+            {recipe.title}
+          </h1>
+          <div className="pt-1 shrink-0">
+            <StarButton recipeId={recipe.id} starred={recipe.starred} size={28} />
+          </div>
+        </div>
 
         {recipe.description && (
           <p
@@ -240,8 +246,8 @@ export function RecipeDetail() {
       >
         {(
           [
-            { value: 'recipe', it: 'La Ricetta', en: 'RECIPE' },
-            { value: 'notes', it: 'Il Diario', en: 'NOTES & LOG' },
+            { value: 'recipe', label: 'Recipe', sub: 'THE DISH' },
+            { value: 'notes', label: 'Notes & Log', sub: 'COOK DIARY' },
           ] as const
         ).map((tab) => {
           const active = activeTab === tab.value
@@ -265,7 +271,7 @@ export function RecipeDetail() {
                   fontWeight: active ? 600 : 500,
                 }}
               >
-                {tab.it}
+                {tab.label}
               </div>
               <div
                 className="font-mono mt-1 font-bold"
@@ -276,7 +282,7 @@ export function RecipeDetail() {
                   opacity: 0.85,
                 }}
               >
-                {tab.en}
+                {tab.sub}
               </div>
             </button>
           )
@@ -404,7 +410,7 @@ export function RecipeDetail() {
             style={{ borderTop: '1px solid var(--color-border)' }}
           >
             <Link to={`/recipes/${recipe.id}/edit`} className="btn-trat btn-trat-ghost">
-              modifica
+              edit
             </Link>
 
             {confirmDelete ? (

@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import type { RecipeWithProfile, RecipeImage, RecipeStatus } from '../../lib/types'
 import { categoryLabel } from '../../lib/categories'
+import { stageMeta } from '../../lib/pipeline'
 import { personColor, nicknameFor } from '../../lib/person-color'
+import { StarButton } from './StarButton'
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 
@@ -53,6 +55,19 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
           boxShadow: '0 2px 0 var(--color-border), 0 14px 24px -16px rgba(36,21,16,0.4)',
         }}
       >
+        {/* Star toggle, top-right */}
+        <div
+          className="absolute top-1.5 right-1.5 z-10 rounded-full"
+          style={{ background: 'rgba(255,250,238,0.82)', backdropFilter: 'blur(2px)' }}
+        >
+          <StarButton
+            recipeId={recipe.id}
+            starred={recipe.starred}
+            size={18}
+            stopPropagation
+          />
+        </div>
+
         {/* Image area with overlay title */}
         <div
           className={`aspect-[4/3] relative overflow-hidden${image ? ' recipe-card-photo' : ''}`}
@@ -147,7 +162,7 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
               by {nicknameFor(profile)}
             </span>
 
-            {status === 'made_it' || cookedCount > 0 ? (
+            {cookedCount > 0 ? (
               <span className="stamp shrink-0">
                 cooked
                 {cookedCount > 1 && (
@@ -156,18 +171,18 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
                   </span>
                 )}
               </span>
-            ) : status === 'want_to_try' ? (
+            ) : stageMeta(status) ? (
               <span
                 className="shrink-0 inline-flex items-center px-2.5 py-1 font-mono font-bold uppercase border-[1.5px]"
                 style={{
-                  color: 'var(--color-basil)',
-                  borderColor: 'var(--color-basil)',
+                  color: stageMeta(status)!.color,
+                  borderColor: stageMeta(status)!.color,
                   fontSize: 9.5,
                   letterSpacing: '0.18em',
                   borderRadius: 2,
                 }}
               >
-                want to try
+                {stageMeta(status)!.short}
               </span>
             ) : null}
           </div>

@@ -10,7 +10,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-text-muted animate-pulse font-display italic text-2xl">
-          La Cucina di Feeny &amp; Beeny
+          Dora&rsquo;s Kitchen
         </div>
       </div>
     )

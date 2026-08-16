@@ -1,0 +1,645 @@
+<title>Recipe Box PRD</title>
+<style>
+  /* ============ Fonts ============ */
+  /* System-stack based; no external CDN (CSP-safe). Deliberate pairing:
+     grotesque display + humanist serif body + mono utility. */
+
+  :root {
+    --paper: #F5F4F1;
+    --paper-raised: #FFFFFF;
+    --ink: #1C1B19;
+    --ink-soft: #45423C;
+    --grey: #6E6A62;
+    --grey-line: #D9D6CF;
+    --accent: #B77A12;      /* preserved-lemon / turmeric */
+    --accent-deep: #8E5E0C;
+    --herb: #566A3F;
+    --herb-soft: #6E8253;
+    --flag-must: #566A3F;
+    --flag-out: #A34B3B;
+    --flag-later: #B77A12;
+    --focus: #B77A12;
+
+    /* pipeline stages */
+    --stage-saved: #6E6A62;
+    --stage-planned: #B77A12;
+    --stage-cooked: #566A3F;
+    --stage-candidate: #A34B3B;
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --grotesque: "Helvetica Neue", "Arial Narrow", system-ui, sans-serif;
+    --mono: "SF Mono", "JetBrains Mono", "Roboto Mono", ui-monospace, "Menlo", monospace;
+
+    --measure: 66ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #16150F;
+      --paper-raised: #201E17;
+      --ink: #EDE9DF;
+      --ink-soft: #C4BFB1;
+      --grey: #928C7D;
+      --grey-line: #34322A;
+      --accent: #E0A63C;
+      --accent-deep: #F0BC5A;
+      --herb: #9DB07E;
+      --herb-soft: #B3C596;
+      --flag-must: #9DB07E;
+      --flag-out: #D77A66;
+      --flag-later: #E0A63C;
+      --focus: #E0A63C;
+      --stage-saved: #928C7D;
+      --stage-planned: #E0A63C;
+      --stage-cooked: #9DB07E;
+      --stage-candidate: #D77A66;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #16150F;
+    --paper-raised: #201E17;
+    --ink: #EDE9DF;
+    --ink-soft: #C4BFB1;
+    --grey: #928C7D;
+    --grey-line: #34322A;
+    --accent: #E0A63C;
+    --accent-deep: #F0BC5A;
+    --herb: #9DB07E;
+    --herb-soft: #B3C596;
+    --flag-must: #9DB07E;
+    --flag-out: #D77A66;
+    --flag-later: #E0A63C;
+    --focus: #E0A63C;
+    --stage-saved: #928C7D;
+    --stage-planned: #E0A63C;
+    --stage-cooked: #9DB07E;
+    --stage-candidate: #D77A66;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: clamp(28px, 6vw, 72px) clamp(20px, 5vw, 40px) 120px;
+  }
+
+  /* ============ Masthead ============ */
+  .masthead {
+    border-top: 3px solid var(--ink);
+    padding-top: 18px;
+    margin-bottom: 56px;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-family: var(--grotesque);
+    font-weight: 700;
+    font-size: clamp(2.4rem, 7vw, 4rem);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0 0 18px;
+  }
+  h1 .accent { color: var(--accent); font-style: normal; }
+  .dek {
+    font-size: clamp(1.05rem, 2.5vw, 1.28rem);
+    color: var(--ink-soft);
+    font-style: italic;
+    max-width: 54ch;
+    margin: 0;
+  }
+
+  /* ============ Section scaffolding ============ */
+  section { margin-top: 60px; scroll-margin-top: 24px; }
+
+  .sec-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--grey);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .sec-label::before {
+    content: attr(data-tab);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 3px 9px 2px;
+    border-radius: 2px;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-family: var(--grotesque);
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.6vw, 2rem);
+    letter-spacing: -0.015em;
+    line-height: 1.08;
+    text-wrap: balance;
+    margin: 0 0 16px;
+  }
+  h3 {
+    font-family: var(--grotesque);
+    font-weight: 700;
+    font-size: 1.12rem;
+    letter-spacing: -0.01em;
+    margin: 32px 0 6px;
+  }
+  p { max-width: var(--measure); }
+  p + p { margin-top: 14px; }
+  a { color: var(--accent-deep); text-underline-offset: 3px; }
+
+  strong { font-weight: 700; color: var(--ink); }
+
+  /* ============ Problem pull ============ */
+  .problem {
+    border-left: 3px solid var(--accent);
+    padding: 4px 0 4px 22px;
+    margin: 0;
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    line-height: 1.4;
+    font-style: italic;
+    color: var(--ink);
+    max-width: 60ch;
+  }
+  .problem .stress { color: var(--accent-deep); font-style: normal; font-weight: 700; }
+
+  /* ============ Value cards ============ */
+  .value-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--grey-line);
+    border: 1px solid var(--grey-line);
+    margin-top: 8px;
+  }
+  .value-cell {
+    background: var(--paper-raised);
+    padding: 20px 20px 22px;
+  }
+  .value-cell .n {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent-deep);
+    text-transform: uppercase;
+  }
+  .value-cell p { font-size: 0.98rem; margin: 8px 0 0; line-height: 1.5; }
+
+  /* ============ Spec list (must-haves) ============ */
+  ol.spec { list-style: none; counter-reset: spec; padding: 0; margin: 8px 0 0; }
+  ol.spec > li {
+    counter-increment: spec;
+    position: relative;
+    padding: 18px 0 18px 52px;
+    border-top: 1px solid var(--grey-line);
+    max-width: none;
+  }
+  ol.spec > li:last-child { border-bottom: 1px solid var(--grey-line); }
+  ol.spec > li::before {
+    content: counter(spec);
+    position: absolute;
+    left: 0; top: 16px;
+    width: 32px; height: 32px;
+    display: grid; place-items: center;
+    background: var(--herb);
+    color: var(--paper-raised);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 3px;
+  }
+  ol.spec > li .feat {
+    font-family: var(--grotesque);
+    font-weight: 700;
+    font-size: 1.12rem;
+    letter-spacing: -0.01em;
+  }
+  ol.spec > li .detail { color: var(--ink-soft); font-size: 1rem; margin-top: 4px; max-width: 58ch; }
+
+  /* chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    padding: 4px 10px;
+    border: 1px solid var(--grey-line);
+    border-radius: 20px;
+    color: var(--ink-soft);
+    background: var(--paper);
+    white-space: nowrap;
+  }
+  .chip .dim { color: var(--grey); }
+
+  /* ============ Priority tables ============ */
+  .flag-block { margin-top: 10px; }
+  .flag-head {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 3px;
+    color: var(--paper-raised);
+    font-weight: 700;
+    margin-bottom: 0;
+  }
+  .flag-head.must { background: var(--flag-must); }
+  .flag-head.out { background: var(--flag-out); }
+  .flag-head.later { background: var(--flag-later); }
+
+  ul.plain { list-style: none; padding: 0; margin: 14px 0 0; }
+  ul.plain > li {
+    padding: 11px 0 11px 26px;
+    border-top: 1px solid var(--grey-line);
+    position: relative;
+    max-width: var(--measure);
+    font-size: 1rem;
+  }
+  ul.plain > li::before {
+    position: absolute; left: 2px; top: 11px;
+    font-family: var(--mono); font-weight: 700;
+  }
+  ul.must > li::before { content: "+"; color: var(--flag-must); }
+  ul.out > li::before { content: "\2013"; color: var(--flag-out); }
+  ul.plain > li .why { color: var(--grey); display: block; font-size: 0.9rem; margin-top: 2px; }
+
+  /* ============ Metric ============ */
+  .metric-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 18px;
+    margin-top: 12px;
+  }
+  .metric {
+    background: var(--paper-raised);
+    border: 1px solid var(--grey-line);
+    border-top: 3px solid var(--accent);
+    padding: 20px;
+  }
+  .metric .tier {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--accent-deep);
+  }
+  .metric .stat {
+    font-family: var(--grotesque); font-weight: 700;
+    font-size: 1.35rem; letter-spacing: -0.01em; line-height: 1.15;
+    margin: 10px 0 0;
+  }
+  .metric .note { font-size: 0.92rem; color: var(--grey); margin: 8px 0 0; }
+
+  /* ============ Open question callout ============ */
+  .callout {
+    background: var(--paper-raised);
+    border: 1px solid var(--grey-line);
+    border-left: 4px solid var(--flag-out);
+    padding: 22px 24px;
+    margin-top: 18px;
+  }
+  .callout .tag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--flag-out); font-weight: 700;
+  }
+  .callout h3 { margin: 8px 0 8px; }
+  .callout p { font-size: 1rem; max-width: 58ch; }
+
+  /* decisions strip */
+  .decisions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--grey-line); border: 1px solid var(--grey-line); margin-top: 10px; }
+  .decision { background: var(--paper-raised); padding: 14px 16px; }
+  .decision .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey); }
+  .decision .v { font-family: var(--grotesque); font-weight: 700; font-size: 1rem; margin-top: 5px; letter-spacing: -0.01em; }
+
+  hr.rule { border: none; border-top: 1px solid var(--grey-line); margin: 0; }
+
+  /* ============ Pipeline ============ */
+  .pipeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+    align-items: stretch;
+  }
+  .stage {
+    flex: 1 1 150px;
+    background: var(--paper-raised);
+    border: 1px solid var(--grey-line);
+    border-top: 3px solid var(--st, var(--grey));
+    padding: 16px 16px 18px;
+    position: relative;
+  }
+  .stage .step {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--st, var(--grey)); font-weight: 700;
+  }
+  .stage .name {
+    font-family: var(--grotesque); font-weight: 700; font-size: 1.16rem;
+    letter-spacing: -0.01em; margin: 8px 0 4px;
+  }
+  .stage .desc { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.45; }
+  .stage.s1 { --st: var(--stage-saved); }
+  .stage.s2 { --st: var(--stage-planned); }
+  .stage.s3 { --st: var(--stage-cooked); }
+  .stage.s4 { --st: var(--stage-candidate); }
+  .pipeline-caption {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    color: var(--grey); text-transform: uppercase; margin: 16px 0 0;
+    display: flex; gap: 18px; flex-wrap: wrap;
+  }
+  .pipeline-caption b { color: var(--ink); font-weight: 700; }
+
+  /* ============ Two pillars ============ */
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    margin-top: 14px;
+  }
+  .pillar {
+    background: var(--paper-raised);
+    border: 1px solid var(--grey-line);
+    padding: 22px 22px 24px;
+  }
+  .pillar.collect { border-top: 4px solid var(--stage-saved); }
+  .pillar.cook { border-top: 4px solid var(--stage-cooked); }
+  .pillar .p-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; font-weight: 700;
+  }
+  .pillar.collect .p-label { color: var(--stage-saved); }
+  .pillar.cook .p-label { color: var(--stage-cooked); }
+  .pillar h3 { margin: 8px 0 4px; font-size: 1.3rem; }
+  .pillar .role { font-size: 0.92rem; color: var(--grey); font-style: italic; margin: 0 0 14px; }
+  .pillar ul { list-style: none; padding: 0; margin: 0; }
+  .pillar li {
+    font-size: 0.98rem; padding: 9px 0 9px 20px; position: relative;
+    border-top: 1px solid var(--grey-line); max-width: none; line-height: 1.45;
+  }
+  .pillar li:first-of-type { border-top: none; }
+  .pillar li::before {
+    content: "\203A"; position: absolute; left: 2px; top: 8px;
+    font-family: var(--mono); font-weight: 700; color: var(--accent-deep);
+  }
+
+  footer { margin-top: 72px; padding-top: 20px; border-top: 3px solid var(--ink); font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em; color: var(--grey); text-transform: uppercase; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    section { animation: rise 0.5s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="kicker">
+      <span>Product Requirements · v0.3</span>
+      <span>Personal Project · 2026</span>
+    </div>
+    <h1>From saved links to a <span class="accent">cookbook</span>.</h1>
+    <p class="dek">A workshop for recipes I collect, cook, and refine — built to move a pile of Instagram saves toward a book I've actually made, one week at a time.</p>
+  </header>
+
+  <section>
+    <div class="sec-label" data-tab="01">The Problem</div>
+    <h2>I save constantly. I retrieve never.</h2>
+    <p class="problem">I save a lot of recipes on Instagram, but they're <span class="stress">not searchable</span> — so when it's time to cook, I can't find anything, and I never end up making them.</p>
+    <p>The saving is easy and already happening. The failure is at <strong>retrieval</strong>: the moment I want a "quick weeknight Korean dinner" or "something with the eggplant in the fridge," my saved recipes are a scroll-only graveyard. The archive exists; it just can't be asked questions.</p>
+    <p>But there's a deeper failure underneath. Even when I <em>can</em> find a recipe, nothing moves me to <strong>make</strong> it — and the real goal is to cook enough of my own, tested recipes to eventually <strong>write a cookbook</strong>. So this can't only be an archive. It has to get me into action-mode: cook something every week, and keep the ones worth keeping.</p>
+  </section>
+
+  <section>
+    <div class="sec-label" data-tab="02">The Core Idea</div>
+    <h2>A pipeline, not a shoebox.</h2>
+    <p>Every recipe has a <strong>status</strong>, and the whole app exists to move recipes rightward — from a link I dumped, to a dish I've made and would put in the book. The archive isn't the destination; it's the mouth of the funnel.</p>
+
+    <div class="pipeline">
+      <div class="stage s1">
+        <div class="step">Stage 01</div>
+        <div class="name">Saved</div>
+        <div class="desc">A link or manual entry lands in the collection. Low effort, high volume.</div>
+      </div>
+      <div class="stage s2">
+        <div class="step">Stage 02</div>
+        <div class="name">Planned</div>
+        <div class="desc">I commit to it — added to a specific week's short "cook next" list.</div>
+      </div>
+      <div class="stage s3">
+        <div class="step">Stage 03</div>
+        <div class="name">Cooked</div>
+        <div class="desc">I made it, and logged how it went + what I changed, while fresh.</div>
+      </div>
+      <div class="stage s4">
+        <div class="step">Stage 04</div>
+        <div class="name">Book candidate</div>
+        <div class="desc">Cooked, loved, refined — flagged as good enough for the cookbook.</div>
+      </div>
+    </div>
+    <p class="pipeline-caption">
+      <span><b>Collect</b> fills stage 01</span>
+      <span><b>Cook</b> drives 02 → 03 → 04</span>
+      <span>The book is everything at stage 04</span>
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-label" data-tab="03">The Two Halves</div>
+    <h2>Collect and Cook, co-equal.</h2>
+    <p>These are the two engines, of equal weight. <strong>Collect</strong> is useless without <strong>Cook</strong> (a searchable pile I never make), and Cook starves without Collect (nothing to plan). One feeds; the other produces.</p>
+
+    <div class="pillars">
+      <div class="pillar collect">
+        <div class="p-label">Half A · Collect</div>
+        <h3>Capture &amp; retrieve</h3>
+        <p class="role">Fills the funnel and makes it answerable.</p>
+        <ul>
+          <li>Save by link (Instagram / website) or manual entry — fast, tag-later.</li>
+          <li>Name + one thumbnail + my custom tags.</li>
+          <li>Multi-dimensional search &amp; full-text, so any question gets an answer.</li>
+        </ul>
+      </div>
+      <div class="pillar cook">
+        <div class="p-label">Half B · Cook</div>
+        <h3>Plan → Make → Log</h3>
+        <p class="role">The engine that produces the cookbook.</p>
+        <ul>
+          <li>Each week, pull 1–3 recipes into "This Week" — a small, real commitment.</li>
+          <li>Mark cooked; log rating, tweaks, and a photo while it's fresh.</li>
+          <li>Promote the keepers to book candidates and watch the list grow.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-label" data-tab="04">MVP Scope · Must-Haves</div>
+    <h2>The smallest thing that runs the whole loop.</h2>
+
+    <ol class="spec">
+      <li>
+        <div class="feat">Save a recipe</div>
+        <div class="detail">Add by sharing a link (Instagram or website) or by manual entry. Name + a single thumbnail. Custom tags, all optional — a recipe is useful with just a name.</div>
+      </li>
+      <li>
+        <div class="feat">Search across many dimensions</div>
+        <div class="detail">Filter and full-text search across the tag system below, in any combination.</div>
+        <div class="chips">
+          <span class="chip">Meal <span class="dim">breakfast · lunch · dinner · snack · dessert</span></span>
+          <span class="chip">Ingredient</span>
+          <span class="chip">Technique</span>
+          <span class="chip">Flavor <span class="dim">sour · spicy · …</span></span>
+          <span class="chip">Keyword <span class="dim">fresh · cozy · high-protein · …</span></span>
+          <span class="chip">Cuisine <span class="dim">moroccan · japanese · korean · …</span></span>
+          <span class="chip">Source <span class="dim">who gave it to me</span></span>
+          <span class="chip">Full-text</span>
+        </div>
+      </li>
+      <li>
+        <div class="feat">Plan the week <span style="font-family:var(--mono);font-size:0.7em;letter-spacing:0.12em;color:var(--stage-planned);vertical-align:middle;">★ THE ACTION DRIVER</span></div>
+        <div class="detail">Pick 1–3 recipes into a "This Week" list — the deliberate act that turns browsing into cooking. A shortlist, not a calendar. This is the feature that produces the cookbook, so it's a must-have, not a nice-to-have.</div>
+      </li>
+      <li>
+        <div class="feat">Cooked it — with notes</div>
+        <div class="detail">Mark a recipe as made, and log the result: rating, what I modified, a photo. My memory across attempts, and the raw material for book candidates.</div>
+      </li>
+      <li>
+        <div class="feat">Track status toward the book</div>
+        <div class="detail">Each recipe shows where it is — saved, planned, cooked, or book candidate — so I can see progress accumulating and flag the keepers.</div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="sec-label" data-tab="05">Designing Against Friction</div>
+    <h2>The two ways this dies — and the antidotes.</h2>
+    <p>Both of my worries are really the same disease: <strong>the loop stalls before it builds momentum.</strong> Two failure points, each with a designed-in antidote.</p>
+
+    <h3>Risk 1 · The cold start — too few recipes to bother searching</h3>
+    <p>If the app starts empty, there's nothing to find, so I stop opening it, so it stays empty. The spiral kills it in week one.</p>
+    <ul class="plain must" style="margin-top:6px;">
+      <li><strong>Seed it in one sitting.</strong> A one-time bulk import of my existing Instagram saves / bookmarks, so day one starts with ~40 recipes, not zero. An empty app is a chore; a full one is a toy.</li>
+      <li><strong>Saving is a 5-second reflex.</strong> Paste link → save. Tagging is optional and deferrable — never a form standing between me and saving.</li>
+      <li><strong>A reason to open beyond saving.</strong> The weekly "plan this week" ritual pulls me in even on weeks I saved nothing.</li>
+    </ul>
+
+    <h3>Risk 2 · The inertia — I have recipes but never cook them</h3>
+    <p>Searching is passive; cooking is the hard, active step. Without a nudge, the collection stays admired and unused — and the cookbook never gets written.</p>
+    <ul class="plain must" style="margin-top:6px;">
+      <li><strong>Planning is the forcing function.</strong> A weekly prompt to commit 1–3 recipes to "This Week" converts intention into a plan. This is why planning is a co-equal must-have, not a side feature.</li>
+      <li><strong>Log while it's fresh.</strong> Cooking → immediate, easy logging makes progress visible and turns each cook into a step toward a book candidate.</li>
+      <li><strong>Visible progress.</strong> A growing count of "book candidates" is the scoreboard that keeps the habit rewarding.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="sec-label" data-tab="06">Boundaries</div>
+    <h2>What this is — and pointedly isn't.</h2>
+
+    <div class="flag-block">
+      <span class="flag-head must">In Scope · MVP</span>
+      <ul class="plain must">
+        <li>Single-user. Just me. I add friends' recipes manually — no accounts for them.</li>
+        <li>Save via link or manual entry, with name, thumbnail, and optional custom tags.</li>
+        <li>Multi-dimensional filtering + full-text search.</li>
+        <li>"This Week" planning shortlist — the weekly cook commitment.</li>
+        <li>"Cooked it" log with per-attempt notes, modifications, and a photo.</li>
+        <li>Status pipeline: saved → planned → cooked → book candidate.</li>
+      </ul>
+    </div>
+
+    <div class="flag-block" style="margin-top:34px;">
+      <span class="flag-head out">Out of Scope</span>
+      <ul class="plain out">
+        <li>Collaboration — commenting or co-editing recipes.
+          <span class="why">Deliberately cut. A friend's recipe is just an entry I type in.</span>
+        </li>
+        <li>A social network for discovering other people.</li>
+        <li>A full meal planner.
+          <span class="why">"This Week" is a 1–3 recipe shortlist, not a 7-day calendar with portions and schedules.</span>
+        </li>
+        <li>Grocery-list planning.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-label" data-tab="07">Success Metrics</div>
+    <h2>How I'll know it's working.</h2>
+    <div class="metric-row">
+      <div class="metric">
+        <div class="tier">North Star</div>
+        <p class="stat">I cook one recipe a week from my own collection.</p>
+        <p class="note">The behavior everything is built to drive — and the raw output the book is made of.</p>
+      </div>
+      <div class="metric">
+        <div class="tier">Outcome</div>
+        <p class="stat">The book-candidate count grows every month.</p>
+        <p class="note">The funnel is producing. This is the metric that proves the app serves the real goal.</p>
+      </div>
+      <div class="metric">
+        <div class="tier">Leading</div>
+        <p class="stat">I plan a week ~1× a week, and save into it instead of Instagram.</p>
+        <p class="note">The habit inputs that make the north star happen.</p>
+      </div>
+    </div>
+
+    <div class="callout" style="border-left-color: var(--flag-later);">
+      <div class="tag" style="color: var(--flag-later);">PM flag · biggest remaining risk</div>
+      <h3>Manual tagging is where Collect quietly fails.</h3>
+      <p>Search only works if recipes are well-tagged, and I've chosen to tag by hand across seven dimensions. The likely failure mode: I skip tagging while saving in a hurry, recipes become un-findable, and I'm back to the Instagram graveyard. <strong>Mitigation baked into scope:</strong> tags are optional, deferrable, and fast — quick-add chips, reuse/autocomplete — and a recipe stays useful with just a name. Worth revisiting whether a touch of save-time assist would de-risk this further.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-label" data-tab="08">Decisions Locked</div>
+    <h2>Settled for this round.</h2>
+    <div class="decisions">
+      <div class="decision"><div class="k">Tagging</div><div class="v">Manual, by me</div></div>
+      <div class="decision"><div class="k">Platform</div><div class="v">Web (current stack)</div></div>
+      <div class="decision"><div class="k">Center</div><div class="v">Collect + Cook, co-equal</div></div>
+      <div class="decision"><div class="k">Pipeline</div><div class="v">Saved → candidate</div></div>
+      <div class="decision"><div class="k">Users</div><div class="v">Just me</div></div>
+      <div class="decision"><div class="k">Goal</div><div class="v">Write a cookbook</div></div>
+    </div>
+    <h3>Known constraint to solve later</h3>
+    <p>Auto-grabbing a thumbnail from <strong>Instagram</strong> is unreliable — Instagram blocks scraping. Plan for a graceful fallback: pull an image where the site allows it (open-graph tags on blogs), otherwise let me paste or upload a thumbnail by hand.</p>
+  </section>
+
+  <footer>
+    <span>Recipe Box · PRD v0.3</span>
+    <span>Re-centered on the cookbook goal</span>
+  </footer>
+
+</div>

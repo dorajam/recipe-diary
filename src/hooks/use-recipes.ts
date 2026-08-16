@@ -94,10 +94,20 @@ export function useCreateRecipe() {
         .single()
 
       if (error) throw error
+
+      // Every new recipe enters the pipeline at 'saved'.
+      await supabase
+        .from('user_recipe_status')
+        .upsert(
+          { recipe_id: (data as Recipe).id, user_id: userId, status: 'saved' },
+          { onConflict: 'recipe_id,user_id' },
+        )
+
       return data as Recipe
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipes'] })
+      queryClient.invalidateQueries({ queryKey: ['recipe-statuses'] })
     },
   })
 }
@@ -122,6 +132,24 @@ export function useUpdateRecipe() {
 
       if (error) throw error
       return data as Recipe
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] })
+      queryClient.invalidateQueries({ queryKey: ['recipes', vars.id] })
+    },
+  })
+}
+
+export function useToggleStar() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, starred }: { id: string; starred: boolean }) => {
+      const { error } = await supabase
+        .from('recipes')
+        .update({ starred })
+        .eq('id', id)
+      if (error) throw error
     },
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['recipes'] })

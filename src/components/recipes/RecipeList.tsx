@@ -16,23 +16,24 @@ const STATUS_TABS: {
   label: string
   mobileLabel: string
 }[] = [
-  { value: 'all', label: 'Tutto', mobileLabel: 'Tutto' },
-  { value: 'want_to_try', label: 'Da provare', mobileLabel: 'Provare' },
-  { value: 'made_it', label: 'Fatto', mobileLabel: 'Fatto' },
+  { value: 'all', label: 'All', mobileLabel: 'All' },
+  { value: 'planned', label: 'Planned', mobileLabel: 'Planned' },
+  { value: 'cooked', label: 'Cooked', mobileLabel: 'Cooked' },
+  { value: 'candidate', label: 'Candidates', mobileLabel: 'Book' },
 ]
 
-const CATEGORY_IT: Record<RecipeCategory, string> = {
-  breakfast: 'Colazione',
-  starter:   'Antipasto',
-  main:      'Primo',
-  side:      'Contorno',
-  soup_stew: 'Zuppa',
-  salad:     'Insalata',
-  dessert:   'Dolce',
-  baking:    'Da forno',
-  snack:     'Spuntino',
-  drink:     'Da bere',
-  sauce_dip: 'Salsa',
+const CATEGORY_LABEL: Record<RecipeCategory, string> = {
+  breakfast: 'Breakfast',
+  starter:   'Starter',
+  main:      'Main',
+  side:      'Side',
+  soup_stew: 'Soup',
+  salad:     'Salad',
+  dessert:   'Dessert',
+  baking:    'Baking',
+  snack:     'Snack',
+  drink:     'Drink',
+  sauce_dip: 'Sauce',
 }
 
 const CATEGORY_COLORS: Partial<Record<RecipeCategory, string>> = {
@@ -50,9 +51,9 @@ function categoryFill(value: RecipeCategory): string {
 
 function getGreeting(): string {
   const hour = new Date().getHours()
-  if (hour < 12) return 'Buongiorno'
-  if (hour < 17) return 'Buon pomeriggio'
-  return 'Buonasera'
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
 }
 
 const NICKNAMES: Record<string, string> = {
@@ -83,17 +84,19 @@ export function RecipeList() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [selectedCats, setSelectedCats] = useState<RecipeCategory[]>([])
+  const [starredOnly, setStarredOnly] = useState(false)
 
   const counts = useMemo(() => {
-    if (!recipes) return { all: 0, want_to_try: 0, made_it: 0 }
-    let want = 0
-    let made = 0
+    const base: Record<StatusFilter, number> = {
+      all: 0, saved: 0, planned: 0, cooked: 0, candidate: 0,
+    }
+    if (!recipes) return base
+    base.all = recipes.length
     for (const r of recipes) {
       const s = statuses?.[r.id]
-      if (s === 'want_to_try') want++
-      else if (s === 'made_it') made++
+      if (s) base[s]++
     }
-    return { all: recipes.length, want_to_try: want, made_it: made }
+    return base
   }, [recipes, statuses])
 
   const filtered = useMemo(() => {
@@ -114,14 +117,18 @@ export function RecipeList() {
       )
     }
 
+    if (starredOnly) {
+      result = result.filter((r) => r.starred)
+    }
+
     return result
-  }, [recipes, search, statusFilter, selectedCats, statuses])
+  }, [recipes, search, statusFilter, selectedCats, starredOnly, statuses])
 
   if (isLoading) {
     return (
       <div className="text-center py-24 text-text-muted">
         <PastaNest size={64} className="mx-auto mb-4 opacity-50 animate-pulse" />
-        <p className="font-mono text-sm">caricamento...</p>
+        <p className="font-mono text-sm">loading…</p>
       </div>
     )
   }
@@ -232,12 +239,7 @@ export function RecipeList() {
       >
         {STATUS_TABS.map(({ value, label }) => {
           const active = statusFilter === value
-          const n =
-            value === 'all'
-              ? counts.all
-              : value === 'want_to_try'
-                ? counts.want_to_try
-                : counts.made_it
+          const n = counts[value]
           return (
             <button
               key={value}
@@ -298,6 +300,28 @@ export function RecipeList() {
         style={{ gap: 8, marginTop: 18 }}
       >
         <button
+          onClick={() => setStarredOnly((v) => !v)}
+          aria-pressed={starredOnly}
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            padding: '6px 12px',
+            borderRadius: 999,
+            background: starredOnly ? 'var(--color-tomato)' : 'transparent',
+            color: starredOnly ? 'var(--color-cream)' : 'var(--color-text)',
+            border: starredOnly ? 'none' : '1px solid var(--color-border)',
+            cursor: 'pointer',
+            fontWeight: 600,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+          }}
+        >
+          <span style={{ fontSize: 13, lineHeight: 1 }}>★</span> Starred
+        </button>
+        <button
           onClick={clearCats}
           style={{
             fontFamily: 'var(--font-mono)',
@@ -342,7 +366,7 @@ export function RecipeList() {
                   fontWeight: 500,
                 }}
               >
-                {CATEGORY_IT[value]}
+                {CATEGORY_LABEL[value]}
               </span>
               <span
                 style={{
@@ -434,7 +458,7 @@ export function RecipeList() {
             cursor: 'pointer',
           }}
         >
-          Tutte
+          All
         </button>
         {CATEGORIES.map(({ value }) => {
           const active = selectedCats.includes(value)
@@ -458,7 +482,7 @@ export function RecipeList() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {CATEGORY_IT[value]}
+              {CATEGORY_LABEL[value]}
             </button>
           )
         })}
@@ -485,7 +509,7 @@ export function RecipeList() {
             <Garlic size={56} />
           </div>
           <p className="font-display italic text-2xl text-text m-0">
-            Niente da trovare.
+            Nothing here.
           </p>
           <p className="font-mono text-sm text-text-muted m-0">
             Nothing matches — try a different search or filter.
@@ -528,7 +552,7 @@ function SearchInput({ value, onChange }: SearchInputProps) {
       </svg>
       <input
         type="text"
-        placeholder="cerca ricette..."
+        placeholder="search recipes…"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full pl-10 pr-4 py-2.5 font-mono text-sm

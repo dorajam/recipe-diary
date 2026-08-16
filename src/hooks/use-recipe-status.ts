@@ -72,8 +72,14 @@ export function useSetRecipeStatus() {
       }
     },
     onSuccess: (_data, vars) => {
+      // Invalidate both the single-recipe status (detail page) and the
+      // all-statuses map (list + This Week views), or those pages show stale
+      // stages and a recipe won't move between filter tabs.
       queryClient.invalidateQueries({
         queryKey: ['recipe-status', vars.recipeId, vars.userId],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['recipe-statuses', vars.userId],
       })
     },
   })

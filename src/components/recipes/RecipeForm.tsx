@@ -29,28 +29,28 @@ interface ScrapedRecipe {
   image_type?: string | null
 }
 
-const CATEGORY_IT: Record<RecipeCategory, string> = {
-  breakfast: 'Colazione',
-  starter:   'Antipasto',
-  main:      'Primo',
-  side:      'Contorno',
-  soup_stew: 'Zuppa',
-  salad:     'Insalata',
-  dessert:   'Dolce',
-  baking:    'Da forno',
-  snack:     'Spuntino',
-  drink:     'Da bere',
-  sauce_dip: 'Salsa',
+const CATEGORY_LABEL: Record<RecipeCategory, string> = {
+  breakfast: 'Breakfast',
+  starter:   'Starter',
+  main:      'Main',
+  side:      'Side',
+  soup_stew: 'Soup',
+  salad:     'Salad',
+  dessert:   'Dessert',
+  baking:    'Baking',
+  snack:     'Snack',
+  drink:     'Drink',
+  sauce_dip: 'Sauce',
 }
 
-// Reusable label with English / italian eyebrow pair
+// Reusable field label. `it` kept in the signature for the existing call
+// sites but no longer rendered — labels are English-only now.
 function FieldLabel({
   en,
-  it,
   optional = false,
 }: {
   en: string
-  it: string
+  it?: string
   optional?: boolean
 }) {
   return (
@@ -62,12 +62,6 @@ function FieldLabel({
             optional
           </span>
         )}
-      </span>
-      <span
-        className="font-mono font-bold text-text-muted"
-        style={{ fontSize: 9, letterSpacing: '0.22em' }}
-      >
-        {it.toUpperCase()}
       </span>
     </div>
   )
@@ -330,7 +324,7 @@ export function RecipeForm() {
             color: 'var(--color-tomato)',
           }}
         >
-          {isEditing ? 'EDITING · IN MODIFICA' : 'NEW RECIPE · UNA NUOVA RICETTA'}
+          {isEditing ? 'EDITING' : 'NEW RECIPE'}
         </div>
         <h2
           className="m-0 font-display italic font-medium leading-[0.95] tracking-tight"
@@ -342,7 +336,7 @@ export function RecipeForm() {
             </>
           ) : (
             <>
-              Cosa <span style={{ color: 'var(--color-tomato)' }}>cuciniamo</span>?
+              Add a <span style={{ color: 'var(--color-tomato)' }}>recipe</span>.
             </>
           )}
         </h2>
@@ -359,8 +353,8 @@ export function RecipeForm() {
           {/* Mode toggle as tabs */}
           <div className="flex" style={{ borderBottom: '1.5px solid var(--color-border)' }}>
             {([
-              { v: 'url',   it: 'Da un link', en: 'FROM URL' },
-              { v: 'photo', it: 'Da una foto', en: 'FROM PHOTO' },
+              { v: 'url',   label: 'From a link',  sub: 'URL' },
+              { v: 'photo', label: 'From a photo', sub: 'PHOTO' },
             ] as const).map((m) => {
               const active = addMode === m.v
               return (
@@ -384,7 +378,7 @@ export function RecipeForm() {
                       fontWeight: active ? 600 : 500,
                     }}
                   >
-                    {m.it}
+                    {m.label}
                   </div>
                   <div
                     className="font-mono mt-1 font-bold"
@@ -395,7 +389,7 @@ export function RecipeForm() {
                       opacity: 0.85,
                     }}
                   >
-                    {m.en}
+                    {m.sub}
                   </div>
                 </button>
               )
@@ -590,7 +584,7 @@ export function RecipeForm() {
                         className="font-display italic leading-none"
                         style={{ fontSize: 13 }}
                       >
-                        {CATEGORY_IT[c.value]}
+                        {CATEGORY_LABEL[c.value]}
                       </span>
                       <span
                         className="font-mono font-bold uppercase"
@@ -727,7 +721,7 @@ export function RecipeForm() {
             disabled={saving || !title.trim()}
             className="btn-trat disabled:opacity-50"
           >
-            {saving ? 'salvando...' : isEditing ? 'save changes' : 'salva ricetta'}
+            {saving ? 'saving…' : isEditing ? 'save changes' : 'save recipe'}
           </button>
         </footer>
       )}

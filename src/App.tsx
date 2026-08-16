@@ -4,6 +4,8 @@ import { AppLayout } from './components/layout/AppLayout'
 import { RecipeList } from './components/recipes/RecipeList'
 import { RecipeDetail } from './components/recipes/RecipeDetail'
 import { RecipeForm } from './components/recipes/RecipeForm'
+import { ThisWeek } from './components/recipes/ThisWeek'
+import { Starred } from './components/recipes/Starred'
 
 function App() {
   return (
@@ -11,6 +13,8 @@ function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<RecipeList />} />
+          <Route path="/week" element={<ThisWeek />} />
+          <Route path="/starred" element={<Starred />} />
           <Route path="/recipes/new" element={<RecipeForm />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
           <Route path="/recipes/:id/edit" element={<RecipeForm />} />

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/use-auth'
 import { useCookLog, useAddCookLog, useDeleteCookLog, useCookLogReactions, useToggleReaction } from '../../hooks/use-cook-log'
-import { useSetRecipeStatus } from '../../hooks/use-recipe-status'
+import { useSetRecipeStatus, useRecipeStatus } from '../../hooks/use-recipe-status'
+import { STAGE_ORDER } from '../../lib/pipeline'
 import { RollingPin } from '../illustrations/Produce'
 import { personColor } from '../../lib/person-color'
 
@@ -21,7 +22,28 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
   const addLog = useAddCookLog()
   const deleteLog = useDeleteCookLog()
   const setStatus = useSetRecipeStatus()
+  const { data: currentStatus } = useRecipeStatus(recipeId, profile?.id)
   const logIds = logs?.map((l) => l.id) || []
+
+  // Logging a cook advances the recipe to 'cooked' — but never downgrades
+  // one that's already a book candidate.
+  function markCooked() {
+    if (!profile) return
+    if (currentStatus && STAGE_ORDER[currentStatus] >= STAGE_ORDER.cooked) return
+    setStatus.mutate({ recipeId, userId: profile.id, status: 'cooked' })
+  }
+
+  // Delete a cook-log entry. If it was the last one and the recipe is still
+  // at 'cooked' (not promoted to candidate), revert to 'planned' — a true undo.
+  function handleDeleteLog(logId: string) {
+    if (!profile) return
+    const remaining = (logs?.length ?? 0) - 1
+    deleteLog.mutate({ logId, recipeId })
+    if (remaining <= 0 && currentStatus === 'cooked') {
+      setStatus.mutate({ recipeId, userId: profile.id, status: 'planned' })
+    }
+  }
+
   const { data: reactions } = useCookLogReactions(logIds)
   const toggleReaction = useToggleReaction()
 
@@ -38,7 +60,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
       cookedOn: new Date().toISOString().split('T')[0],
     })
 
-    setStatus.mutate({ recipeId, userId: profile.id, status: 'made_it' })
+    markCooked()
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -52,7 +74,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
       note: note.trim() || undefined,
     })
 
-    setStatus.mutate({ recipeId, userId: profile.id, status: 'made_it' })
+    markCooked()
 
     setNote('')
     setShowForm(false)
@@ -83,7 +105,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
             disabled={addLog.isPending}
             className={hasLogs ? 'btn-trat' : 'btn-trat btn-trat-ghost'}
           >
-            l'ho fatto!
+            I made it!
           </button>
           <button
             onClick={() => setShowForm(!showForm)}
@@ -149,7 +171,7 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
               disabled={addLog.isPending}
               className="btn-trat disabled:opacity-50"
             >
-              salva
+              save
             </button>
             <button
               type="button"
@@ -235,10 +257,8 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
 
                       {isOwn && (
                         <button
-                          onClick={() =>
-                            deleteLog.mutate({ logId: log.id, recipeId })
-                          }
-                          className="ml-auto font-mono text-[10px] uppercase text-text-muted/40 hover:text-oxblood transition-colors opacity-0 group-hover:opacity-100 bg-transparent border-none cursor-pointer"
+                          onClick={() => handleDeleteLog(log.id)}
+                          className="ml-auto font-mono text-[10px] uppercase text-text-muted/60 hover:text-oxblood transition-colors bg-transparent border-none cursor-pointer"
                           style={{ letterSpacing: '0.18em' }}
                         >
                           delete
@@ -325,10 +345,10 @@ export function CookLogSection({ recipeId }: CookLogSectionProps) {
         <div className="text-center py-8 space-y-3">
           <RollingPin size={80} className="mx-auto opacity-70" />
           <p className="font-display italic text-base text-text m-0">
-            Nessuno l'ha ancora fatto.
+            Not cooked yet.
           </p>
           <p className="font-mono text-xs text-text-muted m-0">
-            no one's made this yet — be the first!
+            you haven't made this yet — give it a go!
           </p>
         </div>
       )}

@@ -15,7 +15,7 @@ interface AuthState {
   session: Session | null
   isAllowed: boolean | null // null = still checking
   loading: boolean
-  signInWithGoogle: () => Promise<void>
+  signInWithEmail: (email: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -119,13 +119,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false)
   }
 
-  async function signInWithGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
+  async function signInWithEmail(email: string) {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
       options: {
-        redirectTo: window.location.origin,
+        emailRedirectTo: window.location.origin,
       },
     })
+    if (error) throw error
   }
 
   async function signOut() {
@@ -142,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         isAllowed,
         loading,
-        signInWithGoogle,
+        signInWithEmail,
         signOut,
       }}
     >

@@ -68,8 +68,8 @@ export function ImageUpload({
               <img
                 src={img.url}
                 alt=""
-                className="w-20 h-20 object-cover border border-border"
-                style={{ borderRadius: 2 }}
+                className="object-cover border border-border"
+                style={{ borderRadius: 3, width: 180, aspectRatio: '4 / 5' }}
               />
               {onDeleteExisting && (
                 <button
@@ -90,8 +90,8 @@ export function ImageUpload({
               <img
                 src={src}
                 alt=""
-                className="w-20 h-20 object-cover border border-border"
-                style={{ borderRadius: 2 }}
+                className="object-cover border border-border"
+                style={{ borderRadius: 3, width: 180, aspectRatio: '4 / 5' }}
               />
               {onRemoveExtra && (
                 <button

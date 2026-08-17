@@ -62,14 +62,14 @@ export function ImageUpload({
   return (
     <div className="space-y-3">
       {hasAnyImages && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2">
           {existingImages.map((img) => (
-            <div key={img.id} className="relative group">
+            <div key={img.id} className="relative group w-full">
               <img
                 src={img.url}
                 alt=""
-                className="object-cover border border-border"
-                style={{ borderRadius: 3, width: 180, aspectRatio: '4 / 5' }}
+                className="w-full object-cover border border-border"
+                style={{ borderRadius: 3, aspectRatio: '4 / 5' }}
               />
               {onDeleteExisting && (
                 <button
@@ -86,12 +86,12 @@ export function ImageUpload({
             </div>
           ))}
           {extraUrls.map((src, i) => (
-            <div key={`extra-${i}`} className="relative group">
+            <div key={`extra-${i}`} className="relative group w-full">
               <img
                 src={src}
                 alt=""
-                className="object-cover border border-border"
-                style={{ borderRadius: 3, width: 180, aspectRatio: '4 / 5' }}
+                className="w-full object-cover border border-border"
+                style={{ borderRadius: 3, aspectRatio: '4 / 5' }}
               />
               {onRemoveExtra && (
                 <button

@@ -62,43 +62,70 @@ export function ThisWeek() {
         </p>
       </div>
 
-      {/* ── Two columns: planned recipes (main) + grocery list (sidebar) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8 items-start">
-        {/* Main: planned recipes or empty state */}
-        <div>
-          {planned.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
-              {planned.map((recipe) => (
-                <RecipeCard
-                  key={recipe.id}
-                  recipe={recipe}
-                  image={firstImages[recipe.id]}
-                  status="planned"
-                  cookedCount={cookCounts?.[recipe.id] ?? 0}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 space-y-5 border border-dashed border-border" style={{ borderRadius: 4 }}>
-              <Basil size={72} className="mx-auto" />
-              <div className="space-y-2">
-                <p className="font-display italic text-2xl text-text m-0">
-                  Nothing planned yet.
-                </p>
-                <p className="font-mono text-sm text-text-muted m-0 max-w-md mx-auto leading-relaxed">
-                  Browse your collection and mark a few recipes{' '}
-                  <span style={{ color: 'var(--color-ackee)' }}>Planned</span> to
-                  build this week's cook list.
-                </p>
-              </div>
-              <Link to="/" className="btn-trat btn-trat-ghost inline-flex mx-auto">
-                Browse recipes
-              </Link>
-            </div>
-          )}
-        </div>
+      {/* ── Two titled panels: cooking this week + shopping list ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 lg:gap-7 items-start">
+        {/* Panel: cooking this week */}
+        <section
+          className="bg-bg-card border border-border overflow-hidden"
+          style={{ borderRadius: 6 }}
+        >
+          <div
+            className="flex items-center gap-2 px-5 py-3"
+            style={{ borderBottom: '1px solid var(--color-border)' }}
+          >
+            <span
+              className="font-mono font-bold"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'var(--color-tomato)',
+              }}
+            >
+              Cooking this week
+            </span>
+            {planned.length > 0 && (
+              <span className="font-mono text-[10px] text-text-muted">
+                {planned.length}
+              </span>
+            )}
+          </div>
 
-        {/* Sidebar: grocery list — sticky on desktop so it follows while scrolling */}
+          <div className="p-5">
+            {planned.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
+                {planned.map((recipe) => (
+                  <RecipeCard
+                    key={recipe.id}
+                    recipe={recipe}
+                    image={firstImages[recipe.id]}
+                    status="planned"
+                    cookedCount={cookCounts?.[recipe.id] ?? 0}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 space-y-4">
+                <Basil size={64} className="mx-auto" />
+                <div className="space-y-2">
+                  <p className="font-display italic text-xl text-text m-0">
+                    Nothing planned yet.
+                  </p>
+                  <p className="font-mono text-sm text-text-muted m-0 max-w-md mx-auto leading-relaxed">
+                    Browse your collection and mark a few recipes{' '}
+                    <span style={{ color: 'var(--color-ackee)' }}>Planned</span>{' '}
+                    to build this week's cook list.
+                  </p>
+                </div>
+                <Link to="/" className="btn-trat btn-trat-ghost inline-flex mx-auto">
+                  Browse recipes
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Panel: shopping list — sticky on desktop so it follows while scrolling */}
         <div className="lg:sticky lg:top-4">
           <GroceryList />
         </div>

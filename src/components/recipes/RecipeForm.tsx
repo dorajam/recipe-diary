@@ -108,7 +108,10 @@ export function RecipeForm() {
   const [description, setDescription] = useState(draft.current?.description ?? '')
   const [sourceUrl, setSourceUrl] = useState(draft.current?.sourceUrl ?? '')
   const [ingredients, setIngredients] = useState<Ingredient[]>(draft.current?.ingredients ?? [])
-  const [steps, setSteps] = useState<string[]>(draft.current?.steps ?? [])
+  // New recipes start with one empty step so the "1." field is already there.
+  const [steps, setSteps] = useState<string[]>(
+    draft.current?.steps ?? (id ? [] : ['']),
+  )
   const [servings, setServings] = useState(draft.current?.servings ?? '')
   const [categories, setCategories] = useState<RecipeCategory[]>(draft.current?.categories ?? [])
   const [formTags, setFormTags] = useState<string[]>(draft.current?.formTags ?? [])

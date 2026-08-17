@@ -34,30 +34,25 @@ export function GroceryList() {
 
   return (
     <aside
-      className="bg-bg-card border border-border p-4 sm:p-5"
-      style={{ borderRadius: 4 }}
+      className="bg-bg-card border border-border overflow-hidden"
+      style={{ borderRadius: 6 }}
     >
-      {/* Heading */}
-      <div className="flex items-baseline justify-between gap-2 mb-3">
-        <div>
-          <div
-            className="font-mono font-bold"
-            style={{
-              fontSize: 9,
-              letterSpacing: '0.28em',
-              color: 'var(--color-basil)',
-              textTransform: 'uppercase',
-            }}
-          >
-            La lista
-          </div>
-          <h2
-            className="m-0 font-display italic font-medium text-text leading-none mt-1"
-            style={{ fontSize: 22 }}
-          >
-            Shopping list
-          </h2>
-        </div>
+      {/* Header bar — matches the "Cooking this week" panel */}
+      <div
+        className="flex items-center justify-between gap-2 px-5 py-3"
+        style={{ borderBottom: '1px solid var(--color-border)' }}
+      >
+        <span
+          className="font-mono font-bold"
+          style={{
+            fontSize: 10,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'var(--color-basil)',
+          }}
+        >
+          Shopping list
+        </span>
         {total > 0 && (
           <span className="font-mono text-[10px] text-text-muted">
             {total - checkedCount} left
@@ -65,6 +60,7 @@ export function GroceryList() {
         )}
       </div>
 
+      <div className="p-4 sm:p-5">
       {/* Add input */}
       <form onSubmit={handleAdd} className="flex gap-2 mb-3">
         <input
@@ -171,6 +167,7 @@ export function GroceryList() {
           Clear checked ({checkedCount})
         </button>
       )}
+      </div>
     </aside>
   )
 }

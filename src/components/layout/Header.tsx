@@ -75,6 +75,118 @@ function Avatar({ initials, size = 34, onClick, title }: AvatarProps) {
   )
 }
 
+function ProfileMenu({ size = 34 }: { size?: number }) {
+  const { profile, signOut, updateDisplayName } = useAuth()
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  // A display_name that just mirrors the email prefix counts as "not set".
+  const emailPrefix = profile?.email.split('@')[0] ?? ''
+  const realName =
+    profile && profile.display_name && profile.display_name !== emailPrefix
+      ? profile.display_name
+      : ''
+  const initials = realName
+    ? initialsFor(realName)
+    : (profile?.email[0]?.toUpperCase() ?? '?')
+
+  useEffect(() => {
+    if (open) setName(realName)
+  }, [open, realName])
+
+  useEffect(() => {
+    if (!open) return
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [open])
+
+  async function handleSave() {
+    setSaving(true)
+    try {
+      await updateDisplayName(name)
+      setOpen(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <Avatar
+        initials={initials}
+        size={size}
+        onClick={() => setOpen((v) => !v)}
+        title="Profile"
+      />
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: size + 8,
+            right: 0,
+            zIndex: 60,
+            width: 240,
+            background: 'var(--color-bg-card)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 6,
+            boxShadow: '0 12px 28px -12px rgba(36,21,16,0.4)',
+            padding: 16,
+          }}
+        >
+          <div
+            className="font-mono font-bold"
+            style={{
+              fontSize: 9,
+              letterSpacing: '0.22em',
+              color: 'var(--color-text-muted)',
+              textTransform: 'uppercase',
+              marginBottom: 6,
+            }}
+          >
+            Your name
+          </div>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSave()
+            }}
+            placeholder="e.g. Dora"
+            autoFocus
+            className="w-full px-3 py-2 font-mono text-[13px] bg-bg text-text
+              border border-border placeholder:text-text-muted/50 placeholder:italic
+              focus:outline-none focus:border-tomato transition-colors"
+            style={{ borderRadius: 2 }}
+          />
+          <div className="flex items-center justify-between mt-3">
+            <button
+              onClick={signOut}
+              className="font-mono text-[10px] uppercase font-bold text-text-muted hover:text-oxblood cursor-pointer bg-transparent border-none"
+              style={{ letterSpacing: '0.16em' }}
+            >
+              Sign out
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="btn-trat disabled:opacity-50"
+              style={{ fontSize: 12, padding: '5px 12px' }}
+            >
+              {saving ? 'saving…' : 'save'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function GhostAddBtn({ size = 'md' }: { size?: 'sm' | 'md' }) {
   const dims = size === 'sm' ? { h: 32, px: 10, fs: 12 } : { h: 40, px: 14, fs: 13 }
   return (
@@ -84,8 +196,8 @@ function GhostAddBtn({ size = 'md' }: { size?: 'sm' | 'md' }) {
         height: dims.h,
         padding: `0 ${dims.px}px`,
         borderRadius: 4,
-        background: 'transparent',
-        color: 'var(--color-tomato)',
+        background: 'var(--color-tomato)',
+        color: 'var(--color-cream)',
         border: '1.5px solid var(--color-tomato)',
         fontFamily: 'var(--font-display)',
         fontStyle: 'italic',
@@ -173,10 +285,9 @@ function InlineWordmark() {
 }
 
 export function Header() {
-  const { profile, signOut } = useAuth()
+  const { profile } = useAuth()
   const { data: recipes } = useRecipes()
   const recipeCount = recipes?.length ?? 0
-  const initials = profile ? initialsFor(profile.display_name) : ''
 
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [scrolled, setScrolled] = useState(false)
@@ -257,12 +368,7 @@ export function Header() {
               >
                 <NavTabs />
                 <GhostAddBtn />
-                <Avatar
-                  initials={initials}
-                  size={34}
-                  onClick={signOut}
-                  title="Sign out"
-                />
+                <ProfileMenu size={34} />
               </div>
               {/* Mobile actions */}
               <div
@@ -270,12 +376,7 @@ export function Header() {
                 style={{ gap: 8, alignItems: 'center', flexShrink: 0 }}
               >
                 <IconAddBtn />
-                <Avatar
-                  initials={initials}
-                  size={32}
-                  onClick={signOut}
-                  title="Sign out"
-                />
+                <ProfileMenu size={32} />
               </div>
             </>
           )}
@@ -337,14 +438,7 @@ export function Header() {
             ↑ TOP
           </button>
           <GhostAddBtn size="sm" />
-          {profile && (
-            <Avatar
-              initials={initials}
-              size={28}
-              onClick={signOut}
-              title="Sign out"
-            />
-          )}
+          {profile && <ProfileMenu size={28} />}
         </div>
       </div>
     </>

@@ -17,6 +17,7 @@ interface AuthState {
   loading: boolean
   signInWithEmail: (email: string) => Promise<void>
   signOut: () => Promise<void>
+  updateDisplayName: (name: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -135,6 +136,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAllowed(null)
   }
 
+  async function updateDisplayName(name: string) {
+    if (!profile) return
+    const clean = name.trim()
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ display_name: clean })
+      .eq('id', profile.id)
+      .select()
+      .single()
+    if (error) throw error
+    setProfile(data as Profile)
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -145,6 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         signInWithEmail,
         signOut,
+        updateDisplayName,
       }}
     >
       {children}

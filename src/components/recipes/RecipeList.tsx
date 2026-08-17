@@ -20,22 +20,8 @@ const STATUS_TABS: {
   { value: 'all', label: 'All', mobileLabel: 'All' },
   { value: 'planned', label: 'Planned', mobileLabel: 'Planned' },
   { value: 'cooked', label: 'Cooked', mobileLabel: 'Cooked' },
-  { value: 'candidate', label: 'Candidates', mobileLabel: 'Book' },
+  { value: 'candidate', label: 'Cookbook candidates', mobileLabel: 'Cookbook' },
 ]
-
-const CATEGORY_LABEL: Record<RecipeCategory, string> = {
-  breakfast: 'Breakfast',
-  starter:   'Starter',
-  main:      'Main',
-  side:      'Side',
-  soup_stew: 'Soup',
-  salad:     'Salad',
-  dessert:   'Dessert',
-  baking:    'Baking',
-  snack:     'Snack',
-  drink:     'Drink',
-  sauce_dip: 'Sauce',
-}
 
 const CATEGORY_COLORS: Partial<Record<RecipeCategory, string>> = {
   breakfast: 'var(--color-ackee)',
@@ -57,13 +43,8 @@ function getGreeting(): string {
   return 'Good evening'
 }
 
-const NICKNAMES: Record<string, string> = {
-  'athenafung25@gmail.com': 'Feeny',
-  'sabrinaeandrenacci@gmail.com': 'Beeny',
-}
-
-function getNickname(email: string, fallbackName: string): string {
-  return NICKNAMES[email] || fallbackName.split(' ')[0]
+function getNickname(_email: string, fallbackName: string): string {
+  return fallbackName.split(' ')[0]
 }
 
 function matchesSearch(
@@ -184,9 +165,12 @@ export function RecipeList() {
     return age < 7 * 24 * 60 * 60 * 1000
   }).length
 
-  const firstName = profile
-    ? getNickname(profile.email, profile.display_name)
-    : ''
+  // Show the name only if the user actually set one (not the email prefix).
+  const emailPrefix = profile?.email.split('@')[0] ?? ''
+  const firstName =
+    profile && profile.display_name && profile.display_name !== emailPrefix
+      ? profile.display_name.split(' ')[0]
+      : ''
 
   const allCatsActive = selectedCats.length === 0
 
@@ -203,19 +187,21 @@ export function RecipeList() {
             textTransform: 'uppercase',
           }}
         >
-          {getGreeting()} ·
+          {getGreeting()}{firstName ? ' ·' : ''}
         </span>
-        <span
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontStyle: 'italic',
-            fontSize: 15,
-            fontWeight: 500,
-            color: 'var(--color-text)',
-          }}
-        >
-          {firstName}
-        </span>
+        {firstName && (
+          <span
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 15,
+              fontWeight: 500,
+              color: 'var(--color-text)',
+            }}
+          >
+            {firstName}
+          </span>
+        )}
       </div>
 
       {/* ── Desktop greeting ── */}
@@ -370,23 +356,11 @@ export function RecipeList() {
             >
               <span
                 style={{
-                  fontFamily: 'var(--font-display)',
-                  fontStyle: 'italic',
-                  fontSize: 13,
-                  fontWeight: 500,
-                }}
-              >
-                {CATEGORY_LABEL[value]}
-              </span>
-              <span
-                style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: 9,
-                  letterSpacing: '0.04em',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: active
-                    ? 'rgba(255,250,238,0.75)'
-                    : 'var(--color-text-muted)',
                 }}
               >
                 {label}
@@ -470,7 +444,7 @@ export function RecipeList() {
         >
           All
         </button>
-        {CATEGORIES.map(({ value }) => {
+        {CATEGORIES.map(({ value, label }) => {
           const active = selectedCats.includes(value)
           const fill = categoryFill(value)
           return (
@@ -478,10 +452,11 @@ export function RecipeList() {
               key={value}
               onClick={() => toggleCat(value)}
               style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 13,
-                fontWeight: 500,
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
                 padding: '6px 12px',
                 borderRadius: 999,
                 flexShrink: 0,
@@ -492,7 +467,7 @@ export function RecipeList() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {CATEGORY_LABEL[value]}
+              {label}
             </button>
           )
         })}

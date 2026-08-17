@@ -1,10 +1,16 @@
-# Dora's Kitchen
+# Dora's Recipe Diary
 
-A personal recipe app that turns a pile of saved Instagram links and blog bookmarks into a **cookbook I actually cook from**.
+Do you spend hours each week doom-scrolling and saving beautiful recipes that you never end up making? Yes, me too.
 
-The core idea is a pipeline, not a shoebox: every recipe moves through **saved → planned → cooked → book candidate**, and the whole app is built to push recipes rightward — from something I dumped in a hurry to a dish I've made, refined, and would put in a book.
+It's frustrating. You save recipes, but there is no way to actually search for them.
 
-> Forked from [athfu/recipe-diary](https://github.com/athfu/recipe-diary) (originally "La Cucina di Feeny & Beeny", a shared two-person diary) and reworked into a single-user, cookbook-focused app. See [What I changed](#what-i-changed-from-the-fork) below.
+This is why I created this app: to have a seamless interface to find my saved recipes. And eventually to help me organize my notes for a cookbook I'm working on.
+
+This app is a personal recipe diary that turns a pile of saved Instagram links and blog bookmarks into recipes I can seamlessly search, navigate, refine and eventually use towards my **cookbook**.
+
+The core idea is simple: recipes moves through **saved → planned → cooked → adjustments → book candidate**, and the whole app is built to push recipes rightward — from something I dumped in a hurry to a dish I've made, refined, tested and would put in a book.
+
+> Credits to my wonderful friend Athena for the initial idea + beautiful design: [athfu/recipe-diary](https://github.com/athfu/recipe-diary) (originally "La Cucina di Feeny & Beeny", a shared two-person diary) and reworked into a single-user, cookbook-focused app. See [What I changed](#what-i-changed-from-the-fork) below.
 
 ## What's in it
 

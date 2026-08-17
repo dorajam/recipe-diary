@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useRecipes } from '../../hooks/use-recipes'
 import { useRecipeFirstImages } from '../../hooks/use-recipe-first-images'
 import { useAllRecipeStatuses } from '../../hooks/use-recipe-status'
+import { useAllRecipeTags } from '../../hooks/use-tags'
 import { useAllCookCounts } from '../../hooks/use-cook-log'
 import { useAuth } from '../../hooks/use-auth'
 import { RecipeCard } from './RecipeCard'
@@ -65,12 +66,18 @@ function getNickname(email: string, fallbackName: string): string {
   return NICKNAMES[email] || fallbackName.split(' ')[0]
 }
 
-function matchesSearch(recipe: RecipeWithProfile, query: string): boolean {
+function matchesSearch(
+  recipe: RecipeWithProfile,
+  query: string,
+  tags: string[],
+): boolean {
   const q = query.toLowerCase()
   if (recipe.title.toLowerCase().includes(q)) return true
   if (recipe.description?.toLowerCase().includes(q)) return true
   if (recipe.ingredients?.some((ing) => ing.item.toLowerCase().includes(q))) return true
   if (recipe.freeform_text?.toLowerCase().includes(q)) return true
+  // Custom tags — partial match, so "summer" finds "summer salad".
+  if (tags.some((t) => t.toLowerCase().includes(q))) return true
   return false
 }
 
@@ -80,6 +87,7 @@ export function RecipeList() {
   const firstImages = useRecipeFirstImages(recipes?.map((r) => r.id))
   const { data: statuses } = useAllRecipeStatuses(user?.id)
   const { data: cookCounts } = useAllCookCounts()
+  const { data: recipeTags } = useAllRecipeTags()
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
@@ -104,7 +112,9 @@ export function RecipeList() {
     let result = recipes
 
     if (search.trim()) {
-      result = result.filter((r) => matchesSearch(r, search.trim()))
+      result = result.filter((r) =>
+        matchesSearch(r, search.trim(), recipeTags?.[r.id] ?? []),
+      )
     }
 
     if (statusFilter !== 'all' && statuses) {
@@ -122,7 +132,7 @@ export function RecipeList() {
     }
 
     return result
-  }, [recipes, search, statusFilter, selectedCats, starredOnly, statuses])
+  }, [recipes, search, statusFilter, selectedCats, starredOnly, statuses, recipeTags])
 
   if (isLoading) {
     return (

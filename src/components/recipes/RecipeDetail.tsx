@@ -10,6 +10,7 @@ import { RecipeStatusToggle } from './RecipeStatusToggle'
 import { CookbookButton } from './CookbookButton'
 import { StarButton } from './StarButton'
 import { InstagramEmbed } from './InstagramEmbed'
+import { TagEditor } from './TagEditor'
 import { isInstagramUrl, instagramPostId } from '../../lib/instagram'
 import { CookLogSection } from './CookLogSection'
 import { CommentThread } from './CommentThread'
@@ -57,6 +58,11 @@ export function RecipeDetail() {
   const activeImage = allImages[activeImageIndex]
   const isSourcePhoto = activeImage?.image_type === 'source_photo'
 
+  const embedId =
+    recipe.source_url && isInstagramUrl(recipe.source_url)
+      ? instagramPostId(recipe.source_url)
+      : null
+
   async function handleDelete() {
     if (!id) return
     await deleteRecipe.mutateAsync(id)
@@ -64,7 +70,9 @@ export function RecipeDetail() {
   }
 
   return (
-    <article className="max-w-3xl mx-auto space-y-7">
+    <article
+      className={`mx-auto space-y-7 ${embedId ? 'max-w-5xl' : 'max-w-3xl'}`}
+    >
       {/* Back link */}
       <Link
         to="/"
@@ -74,6 +82,22 @@ export function RecipeDetail() {
         ← all recipes
       </Link>
 
+      {/* When there's a reel: embed sits left (sticky), all details right.
+          No reel: `contents` makes this wrapper transparent, details flow normally. */}
+      <div
+        className={
+          embedId
+            ? 'grid grid-cols-1 lg:grid-cols-[minmax(260px,300px)_1fr] gap-8 items-start'
+            : 'contents'
+        }
+      >
+        {embedId && (
+          <div className="lg:sticky lg:top-4">
+            <InstagramEmbed postId={embedId} />
+          </div>
+        )}
+
+        <div className="min-w-0 space-y-7">
       {/* Hero image carousel */}
       {activeImage ? (
         <div className="space-y-2">
@@ -230,6 +254,17 @@ export function RecipeDetail() {
           <RecipeStatusToggle recipeId={recipe.id} />
           <CookbookButton recipeId={recipe.id} />
         </div>
+
+        {/* Custom tags — always visible, right under the title/status */}
+        <div>
+          <div
+            className="font-mono font-bold mb-2"
+            style={{ fontSize: 10, letterSpacing: '0.25em', color: 'var(--color-basil)' }}
+          >
+            TAGS
+          </div>
+          <TagEditor recipeId={recipe.id} />
+        </div>
       </div>
 
       {/* Source URL */}
@@ -244,13 +279,6 @@ export function RecipeDetail() {
           view original source →
         </a>
       )}
-
-      {/* Instagram reel embed — so you can watch what the recipe looks like */}
-      {recipe.source_url &&
-        isInstagramUrl(recipe.source_url) &&
-        instagramPostId(recipe.source_url) && (
-          <InstagramEmbed postId={instagramPostId(recipe.source_url)!} />
-        )}
 
       {/* Tabs */}
       <div
@@ -335,7 +363,7 @@ export function RecipeDetail() {
                       >
                         {ing.amount || ing.unit ? (
                           <span
-                            className="font-display italic font-semibold shrink-0 text-right"
+                            className="font-display italic font-semibold shrink-0 text-left"
                             style={{
                               color: 'var(--color-tomato)',
                               minWidth: 64,
@@ -465,6 +493,8 @@ export function RecipeDetail() {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </article>
   )
 }

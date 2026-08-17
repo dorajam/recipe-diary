@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { resizeImage } from '../../lib/image-resize'
 import { Tomato } from '../illustrations/Produce'
 
@@ -6,31 +6,41 @@ interface ImageUploadProps {
   onImagesReady: (files: Blob[]) => void
   existingImages?: { id: string; url: string }[]
   onDeleteExisting?: (id: string) => void
+  /** Extra images added elsewhere (e.g. a scraped or reel-cover photo). */
+  extraImages?: Blob[]
+  onRemoveExtra?: (index: number) => void
 }
 
 export function ImageUpload({
   onImagesReady,
   existingImages = [],
   onDeleteExisting,
+  extraImages = [],
+  onRemoveExtra,
 }: ImageUploadProps) {
-  const [previews, setPreviews] = useState<string[]>([])
   const [processing, setProcessing] = useState(false)
+
+  // Object URLs for the externally-added images, rebuilt when they change.
+  const extraUrls = useMemo(
+    () => extraImages.map((b) => URL.createObjectURL(b)),
+    [extraImages],
+  )
+  useEffect(() => {
+    return () => extraUrls.forEach((u) => URL.revokeObjectURL(u))
+  }, [extraUrls])
 
   const handleFiles = useCallback(
     async (fileList: FileList) => {
       setProcessing(true)
       const blobs: Blob[] = []
-      const newPreviews: string[] = []
 
       for (const file of Array.from(fileList)) {
         if (!file.type.startsWith('image/')) continue
-
-        const resized = await resizeImage(file)
-        blobs.push(resized)
-        newPreviews.push(URL.createObjectURL(resized))
+        blobs.push(await resizeImage(file))
       }
 
-      setPreviews((prev) => [...prev, ...newPreviews])
+      // Parent holds the images (as extraImages) and renders their previews,
+      // so we don't keep a separate internal copy that would double up.
       onImagesReady(blobs)
       setProcessing(false)
     },
@@ -47,7 +57,7 @@ export function ImageUpload({
     [handleFiles],
   )
 
-  const hasAnyImages = existingImages.length > 0 || previews.length > 0
+  const hasAnyImages = existingImages.length > 0 || extraUrls.length > 0
 
   return (
     <div className="space-y-3">
@@ -75,14 +85,27 @@ export function ImageUpload({
               )}
             </div>
           ))}
-          {previews.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt=""
-              className="w-20 h-20 object-cover border border-border opacity-80"
-              style={{ borderRadius: 2 }}
-            />
+          {extraUrls.map((src, i) => (
+            <div key={`extra-${i}`} className="relative group">
+              <img
+                src={src}
+                alt=""
+                className="w-20 h-20 object-cover border border-border"
+                style={{ borderRadius: 2 }}
+              />
+              {onRemoveExtra && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveExtra(i)}
+                  aria-label="Remove photo"
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-oxblood
+                    text-cream text-xs flex items-center justify-center
+                    opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none"
+                >
+                  ×
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}

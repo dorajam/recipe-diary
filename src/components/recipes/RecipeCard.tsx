@@ -70,7 +70,7 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
 
         {/* Image area with overlay title */}
         <div
-          className={`aspect-[4/3] relative overflow-hidden${image ? ' recipe-card-photo' : ''}`}
+          className={`aspect-[3/4] relative overflow-hidden${image ? ' recipe-card-photo' : ''}`}
           style={image ? undefined : { background: gradient }}
         >
           {image ? (

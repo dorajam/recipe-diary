@@ -18,6 +18,7 @@ import { IngredientEditor } from './IngredientEditor'
 import { StepEditor } from './StepEditor'
 import { InstagramEmbed } from './InstagramEmbed'
 import { isInstagramUrl, instagramPostId } from '../../lib/instagram'
+import { useRecipeTags } from '../../hooks/use-tags'
 import { supabase } from '../../lib/supabase'
 
 interface ScrapedRecipe {
@@ -56,11 +57,11 @@ function FieldLabel({
   optional?: boolean
 }) {
   return (
-    <div className="flex items-baseline gap-2 mb-1.5">
-      <span className="font-display italic font-medium text-text text-[15px] leading-none">
+    <div className="flex items-baseline gap-2 mb-3">
+      <span className="font-display italic text-text text-2xl leading-none">
         {en}
         {optional && (
-          <span className="font-mono text-[10px] text-text-muted ml-1.5 not-italic font-normal">
+          <span className="font-mono text-[10px] text-text-muted ml-2 not-italic font-normal align-middle">
             optional
           </span>
         )}
@@ -84,6 +85,7 @@ export function RecipeForm() {
 
   const { data: existingRecipe } = useRecipe(id)
   const { data: existingImages } = useRecipeImages(id)
+  const { data: existingTags } = useRecipeTags(id)
 
   const createRecipe = useCreateRecipe()
   const updateRecipe = useUpdateRecipe()
@@ -109,6 +111,8 @@ export function RecipeForm() {
   const [steps, setSteps] = useState<string[]>(draft.current?.steps ?? [])
   const [servings, setServings] = useState(draft.current?.servings ?? '')
   const [categories, setCategories] = useState<RecipeCategory[]>(draft.current?.categories ?? [])
+  const [formTags, setFormTags] = useState<string[]>(draft.current?.formTags ?? [])
+  const [tagDraft, setTagDraft] = useState('')
   const [pendingImages, setPendingImages] = useState<Blob[]>([])
   const [saving, setSaving] = useState(false)
   const [fetching, setFetching] = useState(false)
@@ -123,9 +127,9 @@ export function RecipeForm() {
 
   const saveDraft = useCallback(() => {
     if (isEditing) return
-    const data = { title, description, sourceUrl, ingredients, steps, servings, categories, hasFetched, addMode }
+    const data = { title, description, sourceUrl, ingredients, steps, servings, categories, formTags, hasFetched, addMode }
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify(data))
-  }, [title, description, sourceUrl, ingredients, steps, servings, categories, hasFetched, addMode, isEditing])
+  }, [title, description, sourceUrl, ingredients, steps, servings, categories, formTags, hasFetched, addMode, isEditing])
 
   useEffect(() => { saveDraft() }, [saveDraft])
 
@@ -147,14 +151,45 @@ export function RecipeForm() {
     }
   }, [existingRecipe])
 
+  // Load the recipe's existing tags into the editor (edit mode only).
+  const tagsPopulated = useRef(false)
+  useEffect(() => {
+    if (isEditing && existingTags && !tagsPopulated.current) {
+      tagsPopulated.current = true
+      setFormTags(existingTags.map((t) => t.name))
+    }
+  }, [isEditing, existingTags])
+
   async function handleFetchUrl() {
     if (!sourceUrl.trim()) return
 
     // Instagram blocks scraping — don't even try. Reveal the form with the
-    // reel embedded so you can watch it and fill in the details yourself.
+    // reel embedded, and grab the reel's cover image as a starting photo.
     if (isInstagramUrl(sourceUrl.trim())) {
       setFetchError('')
       setHasFetched(true)
+      setFetching(true)
+      try {
+        const { data } = await supabase.functions.invoke('instagram-thumbnail', {
+          body: { url: sourceUrl.trim() },
+        })
+        if (data?.image_data) {
+          const binary = atob(data.image_data)
+          const bytes = new Uint8Array(binary.length)
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+          const blob = new Blob([bytes], {
+            type: data.image_type || 'image/jpeg',
+          })
+          const file = new File([blob], 'reel-cover.jpg', { type: blob.type })
+          const { resizeImage } = await import('../../lib/image-resize')
+          const resized = await resizeImage(file)
+          setPendingImages((prev) => [...prev, resized])
+        }
+      } catch {
+        // No cover image — that's fine, the reel still embeds.
+      } finally {
+        setFetching(false)
+      }
       return
     }
 
@@ -264,6 +299,14 @@ export function RecipeForm() {
     }
   }
 
+  function addFormTag() {
+    const clean = tagDraft.trim().toLowerCase().replace(/\s+/g, ' ')
+    if (clean && !formTags.includes(clean)) {
+      setFormTags((prev) => [...prev, clean])
+    }
+    setTagDraft('')
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!profile || !title.trim()) return
@@ -302,6 +345,7 @@ export function RecipeForm() {
         recipeId = created.id
       }
 
+      // Upload any hand-added photos (fast — already in memory).
       for (const blob of pendingImages) {
         await uploadImage.mutateAsync({
           recipeId,
@@ -309,6 +353,78 @@ export function RecipeForm() {
           imageType: sourceUrl.trim() ? 'dish_photo' : 'source_photo',
           uploadedBy: profile.id,
         })
+      }
+
+      // Save custom tags: find-or-create each, then link to the recipe.
+      // Include any text still typed in the tag box that wasn't "added" yet,
+      // so a tag is never lost to a fast add→save or a forgotten Enter click.
+      const pendingTag = tagDraft.trim().toLowerCase().replace(/\s+/g, ' ')
+      const tagsToSave = pendingTag && !formTags.includes(pendingTag)
+        ? [...formTags, pendingTag]
+        : formTags
+      // Never let a tag failure block the (already successful) recipe save.
+      try {
+        for (const name of tagsToSave) {
+          const clean = name.trim().toLowerCase().replace(/\s+/g, ' ')
+          if (!clean) continue
+          const { data: existing } = await supabase
+            .from('tags')
+            .select('id')
+            .eq('name', clean)
+            .maybeSingle()
+          let tagId = existing?.id
+          if (!tagId) {
+            const { data: created, error: createErr } = await supabase
+              .from('tags')
+              .insert({ name: clean })
+              .select('id')
+              .single()
+            if (createErr) {
+              // Likely a race: another insert created it. Re-read.
+              const { data: refetched } = await supabase
+                .from('tags')
+                .select('id')
+                .eq('name', clean)
+                .maybeSingle()
+              tagId = refetched?.id
+            } else {
+              tagId = created?.id
+            }
+          }
+          if (tagId) {
+            await supabase
+              .from('recipe_tags')
+              .upsert(
+                { recipe_id: recipeId, tag_id: tagId },
+                { onConflict: 'recipe_id,tag_id', ignoreDuplicates: true },
+              )
+          }
+        }
+
+        // On edit, remove links for tags the user deleted in the form.
+        if (isEditing) {
+          const keep = new Set(
+            tagsToSave.map((n) => n.trim().toLowerCase().replace(/\s+/g, ' ')),
+          )
+          const { data: linked } = await supabase
+            .from('recipe_tags')
+            .select('tag_id, tags(name)')
+            .eq('recipe_id', recipeId)
+          for (const row of (linked ?? []) as unknown as {
+            tag_id: string
+            tags: { name: string } | null
+          }[]) {
+            if (row.tags && !keep.has(row.tags.name)) {
+              await supabase
+                .from('recipe_tags')
+                .delete()
+                .eq('recipe_id', recipeId)
+                .eq('tag_id', row.tag_id)
+            }
+          }
+        }
+      } catch (tagErr) {
+        console.error('Some tags failed to save (recipe still saved):', tagErr)
       }
 
       clearDraft()
@@ -441,16 +557,10 @@ export function RecipeForm() {
 
               {isInstagramUrl(sourceUrl) && (
                 <p className="font-mono text-[12px] text-text-muted m-0 leading-[1.5]">
-                  Instagram can’t be auto-read — we’ll embed the reel so you can
-                  watch it, then just add a title and tags below.
+                  Instagram can’t be auto-read — hit{' '}
+                  <span style={{ color: 'var(--color-tomato)' }}>preview</span> and
+                  the reel appears beside the form so you can add a title and tags.
                 </p>
-              )}
-
-              {/* Live Instagram preview */}
-              {isInstagramUrl(sourceUrl) && instagramPostId(sourceUrl) && (
-                <div className="pt-2">
-                  <InstagramEmbed postId={instagramPostId(sourceUrl)!} />
-                </div>
               )}
 
               {!hasFetched && !sourceUrl.trim() && (
@@ -557,13 +667,23 @@ export function RecipeForm() {
       {/* Full form — two-column editorial */}
       {(showFullForm || isEditing) && (
         <div className="grid grid-cols-1 md:grid-cols-[minmax(280px,360px)_1fr] gap-7 md:gap-10">
-          {/* Left column: photos, categories, servings, source */}
+          {/* Left column: reel embed, photos, categories, servings, source */}
           <aside className="space-y-6">
+            {isInstagramUrl(sourceUrl) && instagramPostId(sourceUrl) && (
+              <div>
+                <FieldLabel en="The reel" it="il video" />
+                <InstagramEmbed postId={instagramPostId(sourceUrl)!} />
+              </div>
+            )}
             <div>
               <FieldLabel en="Photos" it="le foto" />
               <ImageUpload
                 onImagesReady={(blobs) =>
                   setPendingImages((prev) => [...prev, ...blobs])
+                }
+                extraImages={pendingImages}
+                onRemoveExtra={(index) =>
+                  setPendingImages((prev) => prev.filter((_, i) => i !== index))
                 }
                 existingImages={
                   existingImages?.map((img) => ({
@@ -583,66 +703,6 @@ export function RecipeForm() {
                 }}
               />
             </div>
-
-            <div>
-              <FieldLabel en="Categories" it="categorie" optional />
-              <div className="flex flex-wrap gap-1.5">
-                {CATEGORIES.map((c) => {
-                  const selected = categories.includes(c.value)
-                  return (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() =>
-                        setCategories((prev) =>
-                          selected
-                            ? prev.filter((v) => v !== c.value)
-                            : [...prev, c.value],
-                        )
-                      }
-                      className="px-2.5 py-1 cursor-pointer transition-colors flex items-baseline gap-1.5 border-[1.5px]"
-                      style={{
-                        borderRadius: 2,
-                        background: selected ? 'var(--color-basil)' : 'transparent',
-                        borderColor: selected ? 'var(--color-basil)' : 'var(--color-border)',
-                        color: selected ? 'var(--color-cream)' : 'var(--color-text)',
-                      }}
-                    >
-                      <span
-                        className="font-display italic leading-none"
-                        style={{ fontSize: 13 }}
-                      >
-                        {CATEGORY_LABEL[c.value]}
-                      </span>
-                      <span
-                        className="font-mono font-bold uppercase"
-                        style={{
-                          fontSize: 8.5,
-                          letterSpacing: '0.16em',
-                          opacity: selected ? 0.9 : 0.6,
-                        }}
-                      >
-                        {c.label}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {(servings || ingredients.length > 0 || isEditing) && (
-              <div>
-                <FieldLabel en="Servings" it="porzioni" optional />
-                <input
-                  type="text"
-                  value={servings}
-                  onChange={(e) => setServings(e.target.value)}
-                  placeholder="e.g. 4-6, 1 loaf"
-                  className={`w-48 ${inputClass}`}
-                  style={inputStyle}
-                />
-              </div>
-            )}
 
             {isEditing && (
               <div>
@@ -674,6 +734,143 @@ export function RecipeForm() {
               />
             </div>
 
+            {/* Categories */}
+            <div>
+              <FieldLabel en="Categories" it="categorie" optional />
+              <div className="flex flex-wrap gap-1.5">
+                {CATEGORIES.map((c) => {
+                  const selected = categories.includes(c.value)
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() =>
+                        setCategories((prev) =>
+                          selected
+                            ? prev.filter((v) => v !== c.value)
+                            : [...prev, c.value],
+                        )
+                      }
+                      className="px-2.5 py-1 cursor-pointer transition-colors flex items-baseline gap-1.5 border-[1.5px]"
+                      style={{
+                        borderRadius: 2,
+                        background: selected ? 'var(--color-basil)' : 'transparent',
+                        borderColor: selected ? 'var(--color-basil)' : 'var(--color-border)',
+                        color: selected ? 'var(--color-cream)' : 'var(--color-text)',
+                      }}
+                    >
+                      <span className="font-display italic leading-none" style={{ fontSize: 13 }}>
+                        {CATEGORY_LABEL[c.value]}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Custom tags */}
+            <div>
+              <FieldLabel en="Tags" it="etichette" optional />
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {formTags.map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1"
+                    style={{
+                      borderRadius: 999,
+                      border: '1px solid var(--color-border)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 11.5,
+                    }}
+                  >
+                    {t}
+                    <button
+                      type="button"
+                      onClick={() => setFormTags((prev) => prev.filter((x) => x !== t))}
+                      aria-label={`Remove ${t}`}
+                      className="cursor-pointer bg-transparent border-none text-text-muted hover:text-oxblood leading-none"
+                      style={{ fontSize: 14 }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2" style={{ maxWidth: 360 }}>
+                <input
+                  type="text"
+                  value={tagDraft}
+                  onChange={(e) => setTagDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addFormTag()
+                    }
+                  }}
+                  placeholder="add a tag… (e.g. summer salad)"
+                  className={`flex-1 ${inputClass}`}
+                  style={inputStyle}
+                />
+                <button
+                  type="button"
+                  onClick={addFormTag}
+                  disabled={!tagDraft.trim()}
+                  className="btn-trat btn-trat-ghost shrink-0 disabled:opacity-40 px-3"
+                >
+                  add
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <FieldLabel en="Servings" it="porzioni" optional />
+              <input
+                type="text"
+                value={servings}
+                onChange={(e) => setServings(e.target.value)}
+                placeholder="e.g. 4-6, 1 loaf"
+                className={`w-48 ${inputClass}`}
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <div className="flex items-baseline gap-3 mb-3">
+                <h3 className="m-0 font-display italic text-2xl">Ingredients</h3>
+                <span
+                  className="font-mono font-bold"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: '0.25em',
+                    color: 'var(--color-basil)',
+                  }}
+                >
+                  INGREDIENTI
+                </span>
+              </div>
+              <IngredientEditor
+                ingredients={ingredients}
+                onChange={setIngredients}
+              />
+            </div>
+
+            <div>
+              <div className="flex items-baseline gap-3 mb-3">
+                <h3 className="m-0 font-display italic text-2xl">Method</h3>
+                <span
+                  className="font-mono font-bold"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: '0.25em',
+                    color: 'var(--color-basil)',
+                  }}
+                >
+                  PROCEDIMENTO
+                </span>
+              </div>
+              <StepEditor steps={steps} onChange={setSteps} />
+            </div>
+
             <div>
               <FieldLabel en="Notes" it="note" optional />
               <textarea
@@ -685,47 +882,6 @@ export function RecipeForm() {
                 style={inputStyle}
               />
             </div>
-
-            {ingredients.length > 0 && (
-              <div>
-                <div className="flex items-baseline gap-3 mb-3">
-                  <h3 className="m-0 font-display italic text-2xl">Ingredients</h3>
-                  <span
-                    className="font-mono font-bold"
-                    style={{
-                      fontSize: 10,
-                      letterSpacing: '0.25em',
-                      color: 'var(--color-basil)',
-                    }}
-                  >
-                    INGREDIENTI
-                  </span>
-                </div>
-                <IngredientEditor
-                  ingredients={ingredients}
-                  onChange={setIngredients}
-                />
-              </div>
-            )}
-
-            {steps.length > 0 && (
-              <div>
-                <div className="flex items-baseline gap-3 mb-3">
-                  <h3 className="m-0 font-display italic text-2xl">Method</h3>
-                  <span
-                    className="font-mono font-bold"
-                    style={{
-                      fontSize: 10,
-                      letterSpacing: '0.25em',
-                      color: 'var(--color-basil)',
-                    }}
-                  >
-                    PROCEDIMENTO
-                  </span>
-                </div>
-                <StepEditor steps={steps} onChange={setSteps} />
-              </div>
-            )}
           </main>
         </div>
       )}

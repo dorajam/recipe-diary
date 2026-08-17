@@ -7,8 +7,8 @@ import { instagramEmbedUrl } from '../../lib/instagram'
 export function InstagramEmbed({ postId }: { postId: string }) {
   return (
     <div
-      className="mx-auto w-full"
-      style={{ maxWidth: 400 }}
+      className="w-full"
+      style={{ maxWidth: 300 }}
     >
       <iframe
         title="Instagram reel"
@@ -18,7 +18,7 @@ export function InstagramEmbed({ postId }: { postId: string }) {
         allowFullScreen
         scrolling="no"
         className="w-full bg-bg-card border border-border"
-        style={{ height: 680, borderRadius: 4 }}
+        style={{ height: 540, borderRadius: 4 }}
       />
     </div>
   )

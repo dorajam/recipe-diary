@@ -1,29 +1,41 @@
-# La Cucina di Feeny & Beeny
+# Dora's Kitchen
 
-A private recipe diary for two — a shared cookbook with a vintage feel, room for messy handwritten clippings, and a running log of what you've actually cooked together.
+A personal recipe app that turns a pile of saved Instagram links and blog bookmarks into a **cookbook I actually cook from**.
 
-The app is gated by an email allow-list, so a deployment is meant for one household / pair of friends at a time. Fork it, swap the title and allowed emails, and make it yours.
+The core idea is a pipeline, not a shoebox: every recipe moves through **saved → planned → cooked → book candidate**, and the whole app is built to push recipes rightward — from something I dumped in a hurry to a dish I've made, refined, and would put in a book.
+
+> Forked from [athfu/recipe-diary](https://github.com/athfu/recipe-diary) (originally "La Cucina di Feeny & Beeny", a shared two-person diary) and reworked into a single-user, cookbook-focused app. See [What I changed](#what-i-changed-from-the-fork) below.
 
 ## What's in it
 
-- **Three ways to add a recipe** — paste a URL (auto-scraped to structured form), upload a photo of a handwritten card / cookbook page (OCR'd with Claude), or type one in by hand. Recipes can be fully structured (ingredients + steps), freeform text, or photo-only.
-- **Categories, tags, and seasons** — multi-select filters on the recipe list.
-- **Per-user status** — each person marks recipes as *want to try* or *made it*, independently.
-- **Cook log** — every time you cook something, log the date, add a note and a photo. Drop emoji reactions on each other's entries.
-- **Comments** — a thread per recipe.
-- **HEIC support** — photos straight from an iPhone are converted in the browser before upload.
+**Collect** — fill the funnel and make it searchable
+- **Add a recipe three ways** — paste a URL (auto-scraped to a structured recipe), save an **Instagram reel** (embedded + cover photo auto-grabbed), or type one in by hand with ingredients, method, servings, and notes.
+- **Custom tags** — free-form tags like `summer salad` or `high-protein`, with autocomplete from tags you've used before.
+- **Fuzzy search + filters** — search matches titles, ingredients, and tags partially (typing "summer" finds "summer salad"), plus category and pipeline-stage filters.
+- **Starred favorites** — a dedicated tab for the ones you love.
+
+**Cook** — the engine that produces the cookbook
+- **This Week** — a weekly plan: pull 1–3 recipes into a shortlist so browsing turns into cooking. Comes with a **shopping list** side panel.
+- **Cook log** — log each time you make something with a date, a **1–5 star rating**, a **"what I changed"** field, notes, and a photo.
+- **Add to cookbook** — a deliberate "this one's good enough" action that promotes a recipe to a **book candidate**, so you can watch the collection you'll actually publish grow.
+
+**Nice touches**
+- **Instagram reels play inline** on the recipe page — no leaving the app.
+- **HEIC support** — iPhone photos are converted in the browser before upload.
+- Magic-link email sign-in, gated by an allow-list.
 
 ## Stack
 
 - **Frontend:** React 19, TypeScript, Vite, Tailwind v4, React Router 7, TanStack Query
 - **Backend:** Supabase — Postgres + Auth + Storage, with RLS gated on the `allowed_emails` table
 - **Edge functions (Deno):**
-  - `scrape-recipe` — fetches a URL and extracts a structured recipe (JSON-LD first, falls back to Claude)
-  - `ocr-recipe` — sends one or more recipe photos to Claude and returns structured ingredients + steps
+  - `scrape-recipe` — fetches a URL and extracts a structured recipe (JSON-LD first, Claude fallback)
+  - `instagram-thumbnail` — grabs a public reel's cover image (oEmbed / og:image; no API key needed)
+  - `ocr-recipe` — sends recipe photos to Claude and returns structured ingredients + steps
 
 ## Running locally
 
-You'll need a Supabase project and an Anthropic API key (for OCR + scrape fallback).
+You'll need a Supabase project. An Anthropic API key is optional (only needed for photo OCR and the scrape fallback on sites without structured data).
 
 ```bash
 # 1. Install
@@ -34,23 +46,25 @@ cp .env.example .env
 # fill in VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
 
 # 3. Set up the database
-# Open the Supabase SQL editor and run supabase/schema.sql
-# Then uncomment the seed block at the bottom and add your allowed emails:
-#
-#   insert into allowed_emails (email) values
-#     ('you@example.com'),
-#     ('friend@example.com');
+#    Run supabase/schema.sql in the Supabase SQL editor, then apply the
+#    migrations in supabase/migrations/ (or `supabase db push` if linked).
+#    Add your allow-listed email:
+#      insert into allowed_emails (email) values ('you@example.com');
 
 # 4. Deploy the edge functions (requires the Supabase CLI)
 supabase functions deploy scrape-recipe
+supabase functions deploy instagram-thumbnail
 supabase functions deploy ocr-recipe
+# Optional — enables OCR + scrape fallback:
 supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 
 # 5. Run
 npm run dev
 ```
 
-Sign in with a magic link to one of the allow-listed emails. The first sign-in creates your profile; you can edit your display name and accent colour from the header avatar.
+Sign in with a magic link to your allow-listed email. The first sign-in creates your profile.
+
+> **Note:** Supabase's free tier pauses a project after ~7 days idle, which surfaces as a "Failed to fetch" error. Restart it from the Supabase dashboard to wake it.
 
 ## Scripts
 
@@ -59,15 +73,16 @@ Sign in with a magic link to one of the allow-listed emails. The first sign-in c
 - `npm run lint` — ESLint
 - `npm run preview` — preview the production build
 
-## Making it yours
+## What I changed from the fork
 
-A few places to tweak when you fork:
-
-- **Title and favicon:** `index.html` (`<title>`) and `public/favicon.svg` (currently a tomato).
-- **Wordmark:** `src/components/layout/Header.tsx`.
-- **Allow list:** the `allowed_emails` table in Supabase. Add or remove rows as needed.
-- **Categories:** the `recipe_category` enum in `supabase/schema.sql` and the labels in `src/lib/categories.ts`.
-- **Accent colours:** defaults live in `src/lib/person-color.ts`; each user can override their own from the profile menu.
+- **Single-user, not a two-person diary** — rebranded to "Dora's Kitchen"; UI is English-first with a little Italian flavor.
+- **Cookbook pipeline** — replaced the `want_to_try` / `made_it` status with a four-stage `saved → planned → cooked → candidate` pipeline (`src/lib/pipeline.ts`).
+- **This Week planning + shopping list** — a new dedicated view and a `grocery_items` table.
+- **Custom tags with fuzzy search** — a real tag editor (`src/components/recipes/TagEditor.tsx`, `src/hooks/use-tags.ts`) wired into search.
+- **Instagram reels** — embed the reel and auto-grab its cover photo (`instagram-thumbnail` function) instead of failing to scrape.
+- **Richer cook log** — added star ratings and a "what I changed" field; "Add to cookbook" promotion.
+- **Manual recipe fields always available** — ingredients / method / servings / notes are editable when creating any recipe.
+- **Auth** — magic-link email sign-in with reliable session persistence.
 
 ## Project layout
 
@@ -76,11 +91,12 @@ src/
   components/
     auth/        — login, allow-list gate
     layout/      — header, app shell
-    recipes/     — list, detail, form, cook log, comments
+    recipes/     — list, detail, form, cook log, tags, grocery list, This Week
     illustrations/
-  hooks/         — data hooks (recipes, comments, cook log, status)
-  lib/           — supabase client, types, categories, image resize
+  hooks/         — data hooks (recipes, tags, cook log, status, grocery)
+  lib/           — supabase client, pipeline stages, types, categories, image resize
 supabase/
-  schema.sql     — full DB schema with RLS policies
+  schema.sql     — base DB schema with RLS policies
+  migrations/    — pipeline, starred, grocery list, cook-log fields
   functions/     — Deno edge functions
 ```

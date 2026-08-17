@@ -5,8 +5,6 @@ import { stageMeta } from '../../lib/pipeline'
 import { personColor, nicknameFor } from '../../lib/person-color'
 import { StarButton } from './StarButton'
 
-const ONE_DAY = 24 * 60 * 60 * 1000
-
 interface RecipeCardProps {
   recipe: RecipeWithProfile
   image?: RecipeImage
@@ -36,7 +34,6 @@ function pickGradient(id: string) {
 
 export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCardProps) {
   const profile = recipe.profiles
-  const isNew = Date.now() - new Date(recipe.created_at).getTime() < ONE_DAY
   const gradient = pickGradient(recipe.id)
   const primaryCategory = recipe.categories?.[0]
     ? categoryLabel(recipe.categories[0])
@@ -70,7 +67,7 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
 
         {/* Image area with overlay title */}
         <div
-          className={`aspect-[3/4] relative overflow-hidden${image ? ' recipe-card-photo' : ''}`}
+          className={`aspect-[4/3] relative overflow-hidden${image ? ' recipe-card-photo' : ''}`}
           style={image ? undefined : { background: gradient }}
         >
           {image ? (
@@ -89,31 +86,6 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
             />
           )}
 
-          {/* Image scrim — slight darkening at the bottom so titles read */}
-          {image && (
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  'linear-gradient(to top, rgba(31,18,8,0.55) 0%, rgba(31,18,8,0.0) 45%)',
-                zIndex: 2,
-              }}
-            />
-          )}
-
-          {/* Title over image */}
-          <h3
-            className="absolute left-3.5 right-3.5 bottom-3 m-0 font-display italic font-medium leading-[1.0] tracking-tight text-cream"
-            style={{
-              fontSize: 'clamp(1.1rem, 2.2vw, 1.5rem)',
-              color: '#FFFAEE',
-              textShadow: '0 2px 14px rgba(0,0,0,0.45)',
-              zIndex: 2,
-            }}
-          >
-            {recipe.title}
-          </h3>
-
           {/* Category tag — lemon */}
           {primaryCategory && (
             <div
@@ -128,31 +100,17 @@ export function RecipeCard({ recipe, image, status, cookedCount = 0 }: RecipeCar
               {primaryCategory}
             </div>
           )}
-
-          {/* Fresh badge */}
-          {isNew && (
-            <div
-              className="absolute top-3 right-3 font-display italic px-3 py-0.5 rounded-full"
-              style={{
-                background: 'var(--color-tomato)',
-                color: '#FFFAEE',
-                fontSize: 13,
-                transform: 'rotate(6deg)',
-                zIndex: 2,
-              }}
-            >
-              fresh!
-            </div>
-          )}
         </div>
 
-        {/* Card body */}
-        <div className="px-4 py-3.5 space-y-2.5">
-          {recipe.description && (
-            <p className="font-mono text-[12px] text-text-muted leading-[1.5] m-0 line-clamp-2">
-              {recipe.description}
-            </p>
-          )}
+        {/* Card body — title under the image (fixed 2-line height so all
+            cards are identical regardless of title length) */}
+        <div className="px-4 py-3 space-y-1.5">
+          <h3
+            className="m-0 font-display italic font-medium tracking-tight text-text line-clamp-2 overflow-hidden"
+            style={{ fontSize: '1.05rem', lineHeight: 1.15, height: '2.3em' }}
+          >
+            {recipe.title}
+          </h3>
 
           <div className="flex items-center justify-between gap-3">
             <span

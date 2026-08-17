@@ -58,7 +58,7 @@ export function Starred() {
       </div>
 
       {starred.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7 items-start">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5 items-start">
           {starred.map((recipe) => (
             <RecipeCard
               key={recipe.id}

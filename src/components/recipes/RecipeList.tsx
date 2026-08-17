@@ -358,7 +358,7 @@ export function RecipeList() {
                 style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: 11,
-                  fontWeight: 700,
+                  fontWeight: 500,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                 }}
@@ -454,7 +454,7 @@ export function RecipeList() {
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: 11,
-                fontWeight: 700,
+                fontWeight: 500,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 padding: '6px 12px',

@@ -323,12 +323,12 @@ export function Header() {
             letterSpacing: '0.3em',
           }}
         >
-          <span className="sm:hidden">EST. 2011 · VOL. ONE</span>
+          <span className="sm:hidden">EST. 2026 · VOL. ONE</span>
           <span
             className="hidden sm:inline"
             style={{ letterSpacing: '0.36em' }}
           >
-            EST. 2011 · HOME COOKING · VOL. ONE
+            EST. 2026 · HOME COOKING · VOL. ONE
           </span>
           <span style={{ color: 'var(--color-tomato)' }}>
             ● {recipeCount}{' '}

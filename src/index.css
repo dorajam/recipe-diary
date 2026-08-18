@@ -7,46 +7,46 @@
   --font-sans: 'DM Mono', ui-monospace, monospace;
   --font-script: 'Caveat', cursive;
 
-  /* Linen page tones */
-  --color-bg: #F5EBD8;
-  --color-bg-card: #FFFAEE;
-  --color-bg-warm: #EFE0C5;
-  --color-border: #D8C5A2;
-  --color-border-soft: #E8D9BE;
+  /* Linen page tones — warm off-white, matching the tomato-invitation look */
+  --color-bg: #F1EEE8;
+  --color-bg-card: #FBF9F4;
+  --color-bg-warm: #E9E4DA;
+  --color-border: #D8D1C4;
+  --color-border-soft: #E6E0D5;
 
   /* Ink */
   --color-text: #1F1208;
   --color-text-muted: #6B5444;
 
-  /* Electric trattoria palette */
-  --color-tomato: #FF2D1A;
-  --color-basil: #7DAD2E;
+  /* Painted-tomato palette */
+  --color-tomato: #BE2A28;
+  --color-basil: #7E8B4C;
   --color-olive: #6E7837;
-  --color-rose: #E47A7A;
-  --color-lemon: #FFD21A;
-  --color-scotch: #FF3500;
-  --color-ackee: #FFB800;
+  --color-rose: #C56A5C;
+  --color-lemon: #E6B84A;
+  --color-scotch: #C43A24;
+  --color-ackee: #D99B2B;
   --color-aubergine: #5A1A36;
   --color-oxblood: #8E1B2B;
-  --color-cream: #FFFAEE;
+  --color-cream: #FBF9F4;
 
   /* Soft tints (for backgrounds of pills, soft buttons, etc) */
-  --color-tomato-soft: #FCE5DD;
-  --color-basil-soft: #E8EFD3;
-  --color-lemon-soft: #FFF4C2;
+  --color-tomato-soft: #F3E0DC;
+  --color-basil-soft: #E7EAD8;
+  --color-lemon-soft: #F6EDD2;
 
   /* Person colors — see lib/person-color.ts for the email-keyed override */
-  --color-person-a: #E47A7A;
+  --color-person-a: #C56A5C;
   --color-person-b: #6E7837;
 
   /* Legacy aliases so any straggling utilities don't blow up */
-  --color-accent: #FF2D1A;
-  --color-accent-soft: #FCE5DD;
-  --color-pop: #FF3500;
-  --color-pop-soft: #FCE5DD;
-  --color-sunny: #FFD21A;
-  --color-sunny-soft: #FFF4C2;
-  --color-tag-bg: #EFE0C5;
+  --color-accent: #BE2A28;
+  --color-accent-soft: #F3E0DC;
+  --color-pop: #C43A24;
+  --color-pop-soft: #F3E0DC;
+  --color-sunny: #E6B84A;
+  --color-sunny-soft: #F6EDD2;
+  --color-tag-bg: #E9E4DA;
 }
 
 html {

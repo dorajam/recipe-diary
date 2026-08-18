@@ -44,7 +44,7 @@ export function LoginPage() {
             style={{ fontSize: 'clamp(1.8rem, 5vw, 2.6rem)' }}
           >
             Dora&rsquo;s{' '}
-            <span style={{ color: 'var(--color-tomato)' }}>Kitchen</span>
+            <span style={{ color: 'var(--color-tomato)' }}>Recipe Diary</span>
           </h1>
 
           <p className="font-display italic text-text-muted text-lg m-0 mt-4">

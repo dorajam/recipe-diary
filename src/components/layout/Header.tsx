@@ -259,7 +259,7 @@ function MainWordmark() {
         fontSize: 'clamp(24px, 4.2vw, 52px)',
       }}
     >
-      Dora&rsquo;s <span style={{ color: 'var(--color-tomato)' }}>Kitchen</span>
+      Dora&rsquo;s <span style={{ color: 'var(--color-tomato)' }}>Recipe Diary</span>
     </h1>
   )
 }
@@ -279,7 +279,7 @@ function InlineWordmark() {
         color: 'var(--color-text)',
       }}
     >
-      Dora&rsquo;s <span style={{ color: 'var(--color-tomato)' }}>Kitchen</span>
+      Dora&rsquo;s <span style={{ color: 'var(--color-tomato)' }}>Recipe Diary</span>
     </span>
   )
 }

@@ -29,7 +29,7 @@ export function NotAllowed() {
           </h1>
 
           <p className="font-display italic text-text-muted text-base m-0 leading-relaxed">
-            Dora&rsquo;s Kitchen is a personal space. It&rsquo;s not open for new
+            Dora&rsquo;s Recipe Diary is a personal space. It&rsquo;s not open for new
             accounts right now.
           </p>
 

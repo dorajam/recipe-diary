@@ -92,14 +92,24 @@ export function RecipeDetail() {
         }
       >
         {embedId && (
-          <div className="lg:sticky lg:top-4">
+          <div className="lg:sticky lg:top-4 space-y-3">
             <InstagramEmbed postId={embedId} />
+            {/* Saved cover photo — below the reel, same width, square */}
+            {activeImage && (
+              <img
+                src={activeImage.image_url}
+                alt=""
+                className="w-full object-cover border border-border"
+                style={{ borderRadius: 4, aspectRatio: '1 / 1' }}
+              />
+            )}
           </div>
         )}
 
         <div className="min-w-0 space-y-7">
-      {/* Hero image carousel */}
-      {activeImage ? (
+      {/* Hero image carousel — only when there's no reel (with a reel, the
+          photo shows under the embed in the left column instead). */}
+      {!embedId && activeImage ? (
         <div className="space-y-2">
           <div
             className="relative overflow-hidden border border-border"

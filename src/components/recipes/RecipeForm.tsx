@@ -358,6 +358,38 @@ export function RecipeForm() {
         })
       }
 
+      // Fallback: if this is an Instagram recipe with no photo yet (e.g. you
+      // saved without hitting "preview"), grab the reel cover now so every
+      // reel recipe still gets a thumbnail.
+      const noPhotos =
+        pendingImages.length === 0 && (existingImages?.length ?? 0) === 0
+      if (noPhotos && isInstagramUrl(sourceUrl.trim())) {
+        try {
+          const { data } = await supabase.functions.invoke(
+            'instagram-thumbnail',
+            { body: { url: sourceUrl.trim() } },
+          )
+          if (data?.image_data) {
+            const binary = atob(data.image_data)
+            const bytes = new Uint8Array(binary.length)
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+            const blob = new Blob([bytes], {
+              type: data.image_type || 'image/jpeg',
+            })
+            const file = new File([blob], 'reel-cover.jpg', { type: blob.type })
+            const { resizeImage } = await import('../../lib/image-resize')
+            await uploadImage.mutateAsync({
+              recipeId,
+              file: await resizeImage(file),
+              imageType: 'dish_photo',
+              uploadedBy: profile.id,
+            })
+          }
+        } catch (err) {
+          console.error('Could not grab reel cover on save:', err)
+        }
+      }
+
       // Save custom tags: find-or-create each, then link to the recipe.
       // Include any text still typed in the tag box that wasn't "added" yet,
       // so a tag is never lost to a fast add→save or a forgotten Enter click.

@@ -204,13 +204,19 @@ export function RecipeForm() {
             body: { url },
           })
           if (!data) return
-          // Only fill fields the user hasn't already touched.
+          // Only fill fields the user hasn't already typed into. New recipes
+          // start with a blank ingredient/step placeholder, so "all blank"
+          // counts as empty and still gets auto-filled.
           if (data.title) setTitle((t: string) => t || data.title)
           if (Array.isArray(data.ingredients) && data.ingredients.length) {
-            setIngredients((prev) => (prev.length ? prev : data.ingredients))
+            setIngredients((prev) =>
+              prev.some((i) => i.item.trim()) ? prev : data.ingredients,
+            )
           }
           if (Array.isArray(data.steps) && data.steps.length) {
-            setSteps((prev) => (prev.length ? prev : data.steps))
+            setSteps((prev) =>
+              prev.some((s) => s.trim()) ? prev : data.steps,
+            )
           }
           if (data.servings) setServings((s: string) => s || data.servings)
         } catch {

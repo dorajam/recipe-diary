@@ -82,6 +82,7 @@ Return ONLY valid JSON with this exact structure, no other text:
 }
 
 Rules:
+- LANGUAGE: If the caption is not in English, translate everything to English first, then extract. All output (title, ingredients, steps, servings) must be in English regardless of the caption's language.
 - Split each ingredient into amount, unit, and item. If amount/unit aren't given, use empty strings (e.g. an ingredient like "Mackerel" → {"amount":"","unit":"","item":"mackerel"}).
 - Steps are an ordered array of instruction strings. If the caption describes the method as prose, break it into logical steps.
 - If the caption clearly contains NO recipe (just a comment, hashtags, or promo), return {"ingredients":[],"steps":[],"title":"","servings":""}.
@@ -100,7 +101,7 @@ ${caption}
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5",
         max_tokens: 4096,
         messages: [{ role: "user", content: prompt }],
       }),

@@ -167,32 +167,59 @@ export function RecipeForm() {
     if (!sourceUrl.trim()) return
 
     // Instagram blocks scraping — don't even try. Reveal the form with the
-    // reel embedded, and grab the reel's cover image as a starting photo.
+    // reel embedded, grab the cover photo, and extract the recipe from the
+    // caption (via oEmbed + Claude). All run in parallel.
     if (isInstagramUrl(sourceUrl.trim())) {
+      const url = sourceUrl.trim()
       setFetchError('')
       setHasFetched(true)
       setFetching(true)
-      try {
-        const { data } = await supabase.functions.invoke('instagram-thumbnail', {
-          body: { url: sourceUrl.trim() },
-        })
-        if (data?.image_data) {
-          const binary = atob(data.image_data)
-          const bytes = new Uint8Array(binary.length)
-          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-          const blob = new Blob([bytes], {
-            type: data.image_type || 'image/jpeg',
-          })
-          const file = new File([blob], 'reel-cover.jpg', { type: blob.type })
-          const { resizeImage } = await import('../../lib/image-resize')
-          const resized = await resizeImage(file)
-          setPendingImages((prev) => [...prev, resized])
+
+      const thumbnailJob = (async () => {
+        try {
+          const { data } = await supabase.functions.invoke(
+            'instagram-thumbnail',
+            { body: { url } },
+          )
+          if (data?.image_data) {
+            const binary = atob(data.image_data)
+            const bytes = new Uint8Array(binary.length)
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+            const blob = new Blob([bytes], {
+              type: data.image_type || 'image/jpeg',
+            })
+            const file = new File([blob], 'reel-cover.jpg', { type: blob.type })
+            const { resizeImage } = await import('../../lib/image-resize')
+            const resized = await resizeImage(file)
+            setPendingImages((prev) => [...prev, resized])
+          }
+        } catch {
+          // No cover image — the reel still embeds.
         }
-      } catch {
-        // No cover image — that's fine, the reel still embeds.
-      } finally {
-        setFetching(false)
-      }
+      })()
+
+      const recipeJob = (async () => {
+        try {
+          const { data } = await supabase.functions.invoke('instagram-recipe', {
+            body: { url },
+          })
+          if (!data) return
+          // Only fill fields the user hasn't already touched.
+          if (data.title) setTitle((t: string) => t || data.title)
+          if (Array.isArray(data.ingredients) && data.ingredients.length) {
+            setIngredients((prev) => (prev.length ? prev : data.ingredients))
+          }
+          if (Array.isArray(data.steps) && data.steps.length) {
+            setSteps((prev) => (prev.length ? prev : data.steps))
+          }
+          if (data.servings) setServings((s: string) => s || data.servings)
+        } catch {
+          // Couldn't read the caption — form still works manually.
+        }
+      })()
+
+      await Promise.allSettled([thumbnailJob, recipeJob])
+      setFetching(false)
       return
     }
 
